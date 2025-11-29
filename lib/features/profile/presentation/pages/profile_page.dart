@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -12,7 +13,7 @@ class ProfilePage extends StatelessWidget {
       body: const Center(
         child: Text(
           'Profile Page',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.white),
         ),
       ),
     );

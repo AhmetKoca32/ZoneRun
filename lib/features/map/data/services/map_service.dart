@@ -1,7 +1,8 @@
 import 'dart:math' as math;
-import '../../../core/models/polygon_model.dart';
-import '../../../core/services/location_service.dart';
-import '../../../core/services/database_service.dart';
+
+import '../../../../core/models/polygon_model.dart';
+import '../../../../core/services/database_service.dart';
+import '../../../../core/services/location_service.dart';
 
 class MapService {
   final LocationService _locationService = LocationService();
@@ -27,9 +28,12 @@ class MapService {
     // Convert to square meters (approximate)
     // 1 degree latitude ≈ 111 km
     // 1 degree longitude ≈ 111 km * cos(latitude)
-    final avgLat = points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
+    final avgLat =
+        points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
     final latMeters = 111000.0; // meters per degree latitude
-    final lonMeters = 111000.0 * math.cos(avgLat * math.pi / 180.0); // meters per degree longitude
+    final lonMeters =
+        111000.0 *
+        math.cos(avgLat * math.pi / 180.0); // meters per degree longitude
 
     return area * latMeters * lonMeters;
   }
@@ -69,4 +73,3 @@ class MapService {
     return await _locationService.checkAndRequestPermission();
   }
 }
-

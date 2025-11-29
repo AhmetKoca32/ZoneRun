@@ -1,4 +1,4 @@
-import '../../history/services/history_service.dart';
+import '../../../history/data/services/history_service.dart';
 
 class ProfileService {
   final HistoryService _historyService = HistoryService();
@@ -27,5 +27,13 @@ class ProfileService {
       return '${(areaInSquareMeters / 1000000).toStringAsFixed(2)} km²';
     }
   }
-}
 
+  /// Format distance to readable string
+  String formatDistance(double distanceInMeters) {
+    if (distanceInMeters < 1000) {
+      return '${distanceInMeters.toStringAsFixed(0)} m';
+    } else {
+      return '${(distanceInMeters / 1000).toStringAsFixed(2)} km';
+    }
+  }
+}

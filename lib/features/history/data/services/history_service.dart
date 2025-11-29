@@ -1,5 +1,5 @@
-import '../../../core/models/polygon_model.dart';
-import '../../../core/services/database_service.dart';
+import '../../../../core/models/polygon_model.dart';
+import '../../../../core/services/database_service.dart';
 
 class HistoryService {
   final DatabaseService _databaseService = DatabaseService();
@@ -44,5 +44,16 @@ class HistoryService {
     final polygons = await getHistory();
     return polygons.length;
   }
-}
 
+  /// Get polygons completed today
+  Future<List<PolygonModel>> getTodayPolygons() async {
+    final allPolygons = await getHistory();
+    final now = DateTime.now();
+    final todayStart = DateTime(now.year, now.month, now.day);
+
+    return allPolygons.where((polygon) {
+      if (polygon.completedAt == null) return false;
+      return polygon.completedAt!.isAfter(todayStart);
+    }).toList();
+  }
+}

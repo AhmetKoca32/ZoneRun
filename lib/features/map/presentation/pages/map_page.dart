@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_colors.dart';
 
 class MapPage extends StatelessWidget {
   const MapPage({super.key});
@@ -12,7 +13,7 @@ class MapPage extends StatelessWidget {
       body: const Center(
         child: Text(
           'Map Page',
-          style: TextStyle(color: Colors.white),
+          style: TextStyle(color: AppColors.white),
         ),
       ),
     );
