@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_typography.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -12,17 +12,14 @@ class HomeHeader extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         child: Stack(
           children: [
-            // ZoneRun Title - Centered
+            // ZoneRun Logo - Centered
             Padding(
               padding: const EdgeInsets.only(top: 8),
               child: Center(
-                child: Text(
-                  'ZoneRun',
-                  style: AppTypography.titleLarge.copyWith(
-                    fontSize: 22,
-                    fontWeight: AppTypography.light,
-                    color: AppColors.white,
-                  ),
+                child: Image.asset(
+                  'assets/icons/zonerun-high-resolution-logo-transparent.png',
+                  height: 32,
+                  fit: BoxFit.contain,
                 ),
               ),
             ),
