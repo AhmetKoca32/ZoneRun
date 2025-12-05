@@ -56,4 +56,49 @@ class HistoryService {
       return polygon.completedAt!.isAfter(todayStart);
     }).toList();
   }
+
+  /// Calculate current streak (consecutive days with activity)
+  /// Streak continues if user has activity today or yesterday
+  Future<int> getCurrentStreak() async {
+    final polygons = await getHistory();
+    if (polygons.isEmpty) return 0;
+
+    // Get unique dates when polygons were completed
+    final completedDates = <DateTime>{};
+    for (final polygon in polygons) {
+      if (polygon.completedAt != null) {
+        final date = DateTime(
+          polygon.completedAt!.year,
+          polygon.completedAt!.month,
+          polygon.completedAt!.day,
+        );
+        completedDates.add(date);
+      }
+    }
+
+    if (completedDates.isEmpty) return 0;
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    // Check if user has activity today or yesterday
+    final hasActivityToday = completedDates.contains(today);
+    final yesterday = today.subtract(const Duration(days: 1));
+    final hasActivityYesterday = completedDates.contains(yesterday);
+
+    // If no activity today or yesterday, streak is 0
+    if (!hasActivityToday && !hasActivityYesterday) return 0;
+
+    // Start from today if activity today, otherwise from yesterday
+    DateTime checkDate = hasActivityToday ? today : yesterday;
+    int streak = 0;
+
+    // Count consecutive days backwards
+    while (completedDates.contains(checkDate)) {
+      streak++;
+      checkDate = checkDate.subtract(const Duration(days: 1));
+    }
+
+    return streak;
+  }
 }

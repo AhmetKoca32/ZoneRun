@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomeHeader extends StatelessWidget {
   const HomeHeader({super.key});
@@ -34,7 +35,11 @@ class HomeHeader extends StatelessWidget {
                     color: AppColors.white,
                     iconSize: 24,
                     onPressed: () {
-                      // Navigate to profile
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const ProfilePage(),
+                        ),
+                      );
                     },
                   ),
                   IconButton(

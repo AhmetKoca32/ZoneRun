@@ -29,7 +29,8 @@ class _MetricsSectionState extends State<MetricsSection> {
         final totalDistance =
             (stats['totalDistance'] as num?)?.toDouble() ?? 0.0;
         final averageArea = (stats['averageArea'] as num?)?.toDouble() ?? 0.0;
-        final polygonCount = (stats['polygonCount'] as int?) ?? 0;
+        final totalCalories = (stats['totalCalories'] as int?) ?? 0;
+        final streak = (stats['streak'] as int?) ?? 0;
 
         final showStats = provider.showStats;
         return Column(
@@ -68,8 +69,11 @@ class _MetricsSectionState extends State<MetricsSection> {
             _AnimatedStatsCards(
               showStats: showStats,
               averageArea: averageArea,
-              polygonCount: polygonCount,
+              totalCalories: totalCalories,
+              streak: streak,
               formatArea: provider.formatArea,
+              formatCalories: provider.formatCalories,
+              formatStreak: provider.formatStreak,
             ),
           ],
         );
@@ -191,7 +195,7 @@ class _LeftMetricCard extends StatelessWidget {
         const SizedBox(height: 2),
         // Label (smallest)
         Text(
-          'CONQUERED',
+          'FETHEDİLEN',
           style: AppTypography.labelSmall.copyWith(
             color: AppColors.whiteWithOpacity70,
             fontWeight: AppTypography.light,
@@ -253,7 +257,7 @@ class _CenterMetricCircle extends StatelessWidget {
             const SizedBox(height: 4),
             // Label (smallest)
             Text(
-              'TODAY',
+              'BUGÜN',
               style: AppTypography.labelSmall.copyWith(
                 color: AppColors.white,
                 fontWeight: AppTypography.light,
@@ -309,7 +313,7 @@ class _RightMetricCard extends StatelessWidget {
         const SizedBox(height: 2),
         // Label (smallest)
         Text(
-          'TOTAL',
+          'TOPLAM',
           style: AppTypography.labelSmall.copyWith(
             color: AppColors.whiteWithOpacity70,
             fontWeight: AppTypography.light,
@@ -347,7 +351,7 @@ class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'SEE STATS',
+              'İSTATİSTİKLER',
               style: TextStyle(
                 color: AppColors.white,
                 fontSize: 12,
@@ -379,14 +383,20 @@ class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
 class _AnimatedStatsCards extends StatefulWidget {
   final bool showStats;
   final double averageArea;
-  final int polygonCount;
+  final int totalCalories;
+  final int streak;
   final String Function(double) formatArea;
+  final String Function(int) formatCalories;
+  final String Function(int) formatStreak;
 
   const _AnimatedStatsCards({
     required this.showStats,
     required this.averageArea,
-    required this.polygonCount,
+    required this.totalCalories,
+    required this.streak,
     required this.formatArea,
+    required this.formatCalories,
+    required this.formatStreak,
   });
 
   @override
@@ -460,17 +470,25 @@ class _AnimatedStatsCardsState extends State<_AnimatedStatsCards>
               children: [
                 Expanded(
                   child: _StatCard(
-                    title: 'Average Area',
+                    title: 'Ortalama Alan',
                     value: widget.formatArea(widget.averageArea),
                     icon: Icons.landscape_outlined,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _StatCard(
-                    title: 'Completed',
-                    value: '${widget.polygonCount}',
-                    icon: Icons.check_circle_outline,
+                    title: 'Kalori',
+                    value: widget.formatCalories(widget.totalCalories),
+                    icon: Icons.local_fire_department,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _StatCard(
+                    title: 'Seri',
+                    value: widget.formatStreak(widget.streak),
+                    icon: Icons.trending_up,
                   ),
                 ),
               ],
@@ -497,7 +515,7 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
@@ -508,14 +526,18 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.mediumGray, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: AppTypography.labelSmall.copyWith(
-                  color: AppColors.mediumGray,
-                  fontWeight: AppTypography.medium,
-                  letterSpacing: 0.5,
+              Icon(icon, color: AppColors.mediumGray, size: 18),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  title,
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.mediumGray,
+                    fontWeight: AppTypography.medium,
+                    letterSpacing: 0.5,
+                    fontSize: 9,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
@@ -526,7 +548,10 @@ class _StatCard extends StatelessWidget {
             style: AppTypography.titleMedium.copyWith(
               color: AppColors.black,
               fontWeight: AppTypography.semiBold,
+              fontSize: 14,
             ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ],
       ),

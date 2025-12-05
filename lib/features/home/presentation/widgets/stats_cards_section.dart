@@ -32,7 +32,7 @@ class StatsCardsSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'START',
+                  'BAŞLA',
                   style: AppTypography.labelLarge.copyWith(
                     fontWeight: AppTypography.bold,
                     color: AppColors.black,

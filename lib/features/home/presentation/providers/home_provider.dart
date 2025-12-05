@@ -1,6 +1,9 @@
 import 'package:flutter/foundation.dart';
 
+import '../../../history/data/services/history_service.dart';
+
 class HomeProvider extends ChangeNotifier {
+  final HistoryService _historyService = HistoryService();
   bool _showStats = false;
 
   bool get showStats => _showStats;
@@ -28,13 +31,21 @@ class HomeProvider extends ChangeNotifier {
       // Mock data for development
       await Future.delayed(const Duration(milliseconds: 500));
 
+      final totalDistance = 18500.0; // meters -> 18.50 km
+      final totalDistanceKm = totalDistance / 1000.0;
+      final totalCalories = (totalDistanceKm * 55).round(); // 55 calories per km
+
+      final streak = await _historyService.getCurrentStreak();
+
       _stats = {
         'totalArea': 12500000.0, // m² -> 12.50 km²
         'polygonCount': 8,
         'activePolygonCount': 3,
         'averageArea': 1560000.0, // m² -> 1.56 km²
-        'totalDistance': 18500.0, // meters -> 18.50 km
+        'totalDistance': totalDistance,
         'todayDistance': 3200.0, // meters -> 3.20 km
+        'totalCalories': totalCalories,
+        'streak': streak,
       };
     } catch (e) {
       if (kDebugMode) {
@@ -47,6 +58,8 @@ class HomeProvider extends ChangeNotifier {
         'averageArea': 0.0,
         'totalDistance': 0.0,
         'todayDistance': 0.0,
+        'totalCalories': 0,
+        'streak': 0,
       };
     } finally {
       _isLoading = false;
@@ -70,5 +83,17 @@ class HomeProvider extends ChangeNotifier {
     } else {
       return '${(areaInSquareMeters / 1000000).toStringAsFixed(2)} km²';
     }
+  }
+
+  String formatCalories(int calories) {
+    if (calories < 1000) {
+      return '$calories kcal';
+    } else {
+      return '${(calories / 1000).toStringAsFixed(1)}k kcal';
+    }
+  }
+
+  String formatStreak(int streak) {
+    return '$streak';
   }
 }

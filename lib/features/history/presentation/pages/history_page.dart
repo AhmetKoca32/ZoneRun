@@ -8,9 +8,9 @@ class HistoryPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('History')),
+      appBar: AppBar(title: const Text('Geçmiş')),
       body: const Center(
-        child: Text('History Page', style: TextStyle(color: AppColors.white)),
+        child: Text('Geçmiş Sayfası', style: TextStyle(color: AppColors.white)),
       ),
     );
   }

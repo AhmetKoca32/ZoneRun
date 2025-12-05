@@ -8,11 +8,11 @@ class MapPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Map'),
+        title: const Text('Harita'),
       ),
       body: const Center(
         child: Text(
-          'Map Page',
+          'Harita Sayfası',
           style: TextStyle(color: AppColors.white),
         ),
       ),
