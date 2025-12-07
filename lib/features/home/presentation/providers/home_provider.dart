@@ -35,7 +35,13 @@ class HomeProvider extends ChangeNotifier {
       final totalDistanceKm = totalDistance / 1000.0;
       final totalCalories = (totalDistanceKm * 55).round(); // 55 calories per km
 
+      final todayDistance = 3200.0; // meters -> 3.20 km
+      final todayDistanceKm = todayDistance / 1000.0;
+      final todayCalories = (todayDistanceKm * 55).round(); // 55 calories per km
+
       final streak = await _historyService.getCurrentStreak();
+      final maxArea = await _historyService.getMaxArea();
+      final maxStreak = await _historyService.getMaxStreak();
 
       _stats = {
         'totalArea': 12500000.0, // m² -> 12.50 km²
@@ -43,9 +49,12 @@ class HomeProvider extends ChangeNotifier {
         'activePolygonCount': 3,
         'averageArea': 1560000.0, // m² -> 1.56 km²
         'totalDistance': totalDistance,
-        'todayDistance': 3200.0, // meters -> 3.20 km
+        'todayDistance': todayDistance,
         'totalCalories': totalCalories,
+        'todayCalories': todayCalories,
         'streak': streak,
+        'maxArea': maxArea,
+        'maxStreak': maxStreak,
       };
     } catch (e) {
       if (kDebugMode) {
@@ -59,7 +68,10 @@ class HomeProvider extends ChangeNotifier {
         'totalDistance': 0.0,
         'todayDistance': 0.0,
         'totalCalories': 0,
+        'todayCalories': 0,
         'streak': 0,
+        'maxArea': 0.0,
+        'maxStreak': 0,
       };
     } finally {
       _isLoading = false;

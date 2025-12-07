@@ -30,7 +30,10 @@ class _MetricsSectionState extends State<MetricsSection> {
             (stats['totalDistance'] as num?)?.toDouble() ?? 0.0;
         final averageArea = (stats['averageArea'] as num?)?.toDouble() ?? 0.0;
         final totalCalories = (stats['totalCalories'] as int?) ?? 0;
+        final todayCalories = (stats['todayCalories'] as int?) ?? 0;
         final streak = (stats['streak'] as int?) ?? 0;
+        final maxArea = (stats['maxArea'] as num?)?.toDouble() ?? 0.0;
+        final maxStreak = (stats['maxStreak'] as int?) ?? 0;
 
         final showStats = provider.showStats;
         return Column(
@@ -70,7 +73,10 @@ class _MetricsSectionState extends State<MetricsSection> {
               showStats: showStats,
               averageArea: averageArea,
               totalCalories: totalCalories,
+              todayCalories: todayCalories,
               streak: streak,
+              maxArea: maxArea,
+              maxStreak: maxStreak,
               formatArea: provider.formatArea,
               formatCalories: provider.formatCalories,
               formatStreak: provider.formatStreak,
@@ -384,7 +390,10 @@ class _AnimatedStatsCards extends StatefulWidget {
   final bool showStats;
   final double averageArea;
   final int totalCalories;
+  final int todayCalories;
   final int streak;
+  final double maxArea;
+  final int maxStreak;
   final String Function(double) formatArea;
   final String Function(int) formatCalories;
   final String Function(int) formatStreak;
@@ -393,7 +402,10 @@ class _AnimatedStatsCards extends StatefulWidget {
     required this.showStats,
     required this.averageArea,
     required this.totalCalories,
+    required this.todayCalories,
     required this.streak,
+    required this.maxArea,
+    required this.maxStreak,
     required this.formatArea,
     required this.formatCalories,
     required this.formatStreak,
@@ -473,14 +485,16 @@ class _AnimatedStatsCardsState extends State<_AnimatedStatsCards>
                     title: 'Ortalama Alan',
                     value: widget.formatArea(widget.averageArea),
                     icon: Icons.landscape_outlined,
+                    badgeLabel: 'En Büyük Alan',
+                    badgeValue: widget.formatArea(widget.maxArea),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: _StatCard(
-                    title: 'Kalori',
-                    value: widget.formatCalories(widget.totalCalories),
-                    icon: Icons.local_fire_department,
+                  child: _CalorieStatCard(
+                    todayCalories: widget.todayCalories,
+                    totalCalories: widget.totalCalories,
+                    formatCalories: widget.formatCalories,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -489,6 +503,8 @@ class _AnimatedStatsCardsState extends State<_AnimatedStatsCards>
                     title: 'Seri',
                     value: widget.formatStreak(widget.streak),
                     icon: Icons.trending_up,
+                    badgeLabel: 'En Yüksek Seri',
+                    badgeValue: widget.formatStreak(widget.maxStreak),
                   ),
                 ),
               ],
@@ -505,11 +521,15 @@ class _StatCard extends StatelessWidget {
   final String title;
   final String value;
   final IconData icon;
+  final String? badgeLabel;
+  final String? badgeValue;
 
   const _StatCard({
     required this.title,
     required this.value,
     required this.icon,
+    this.badgeLabel,
+    this.badgeValue,
   });
 
   @override
@@ -552,6 +572,135 @@ class _StatCard extends StatelessWidget {
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
+          ),
+          if (badgeLabel != null && badgeValue != null) ...[
+            const SizedBox(height: 6),
+            // Badge
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.mediumGray.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: RichText(
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
+                text: TextSpan(
+                  children: [
+                    TextSpan(
+                      text: '$badgeLabel: ',
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.mediumGray,
+                        fontWeight: AppTypography.regular,
+                        fontSize: 8,
+                      ),
+                    ),
+                    TextSpan(
+                      text: badgeValue,
+                      style: AppTypography.labelSmall.copyWith(
+                        color: AppColors.black,
+                        fontWeight: AppTypography.semiBold,
+                        fontSize: 9,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ] else
+            const SizedBox(height: 6),
+        ],
+      ),
+    );
+  }
+}
+
+// Calorie Stat Card Widget (shows today and total calories)
+class _CalorieStatCard extends StatelessWidget {
+  final int todayCalories;
+  final int totalCalories;
+  final String Function(int) formatCalories;
+
+  const _CalorieStatCard({
+    required this.todayCalories,
+    required this.totalCalories,
+    required this.formatCalories,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.local_fire_department, color: AppColors.mediumGray, size: 18),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                  'Kalori',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: AppColors.mediumGray,
+                    fontWeight: AppTypography.medium,
+                    letterSpacing: 0.5,
+                    fontSize: 9,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          // Today's calories (main value)
+          Text(
+            formatCalories(todayCalories),
+            style: AppTypography.titleMedium.copyWith(
+              color: AppColors.black,
+              fontWeight: AppTypography.semiBold,
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+          const SizedBox(height: 6),
+          // Total calories (badge style)
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.mediumGray.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: RichText(
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: 'Toplam: ',
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.mediumGray,
+                      fontWeight: AppTypography.regular,
+                      fontSize: 8,
+                    ),
+                  ),
+                  TextSpan(
+                    text: formatCalories(totalCalories),
+                    style: AppTypography.labelSmall.copyWith(
+                      color: AppColors.black,
+                      fontWeight: AppTypography.semiBold,
+                      fontSize: 9,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       ),

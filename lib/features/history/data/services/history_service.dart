@@ -101,4 +101,70 @@ class HistoryService {
 
     return streak;
   }
+
+  /// Get maximum area from all completed polygons
+  Future<double> getMaxArea() async {
+    final polygons = await getHistory();
+    if (polygons.isEmpty) return 0.0;
+    
+    double maxArea = 0.0;
+    for (final polygon in polygons) {
+      if (polygon.area > maxArea) {
+        maxArea = polygon.area;
+      }
+    }
+    return maxArea;
+  }
+
+  /// Get maximum streak (highest streak ever achieved)
+  Future<int> getMaxStreak() async {
+    final polygons = await getHistory();
+    if (polygons.isEmpty) return 0;
+
+    // Get unique dates when polygons were completed
+    final completedDates = <DateTime>{};
+    for (final polygon in polygons) {
+      if (polygon.completedAt != null) {
+        final date = DateTime(
+          polygon.completedAt!.year,
+          polygon.completedAt!.month,
+          polygon.completedAt!.day,
+        );
+        completedDates.add(date);
+      }
+    }
+
+    if (completedDates.isEmpty) return 0;
+
+    // Sort dates
+    final sortedDates = completedDates.toList()..sort();
+
+    int maxStreak = 0;
+    int currentStreak = 1;
+
+    // Find longest consecutive sequence
+    for (int i = 1; i < sortedDates.length; i++) {
+      final prevDate = sortedDates[i - 1];
+      final currDate = sortedDates[i];
+      final daysDiff = currDate.difference(prevDate).inDays;
+
+      if (daysDiff == 1) {
+        // Consecutive day
+        currentStreak++;
+      } else {
+        // Break in streak
+        if (currentStreak > maxStreak) {
+          maxStreak = currentStreak;
+        }
+        currentStreak = 1;
+      }
+    }
+
+    // Check last streak
+    if (currentStreak > maxStreak) {
+      maxStreak = currentStreak;
+    }
+
+    return maxStreak;
+  }
 }

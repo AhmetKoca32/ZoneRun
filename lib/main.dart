@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/home/presentation/providers/home_provider.dart';
 import 'features/profile/presentation/providers/profile_provider.dart';
+import 'features/store/presentation/providers/store_provider.dart';
 
 void main() {
   runApp(const ZoneRunApp());
@@ -19,6 +20,7 @@ class ZoneRunApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => StoreProvider()),
       ],
       child: MaterialApp(
         title: 'ZoneRun',

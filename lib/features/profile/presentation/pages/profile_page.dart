@@ -9,6 +9,8 @@ import '../widgets/promo_credits_item.dart';
 import '../widgets/quick_access_cards.dart';
 import '../widgets/section_header.dart';
 import '../widgets/settings_list_item.dart';
+import 'user_profile_page.dart';
+import '../../../help/presentation/pages/help_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -71,7 +73,7 @@ class ProfilePage extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        'Kullanıcı',
+                        provider.userName,
                         style: AppTypography.headlineMedium.copyWith(
                           color: AppColors.white,
                           fontWeight: AppTypography.extraBold,
@@ -86,10 +88,18 @@ class ProfilePage extends StatelessWidget {
                 QuickAccessCards(
                   isDarkTheme: provider.isDarkTheme,
                   onUserProfileTap: () {
-                    // Navigate to user profile
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const UserProfilePage(),
+                      ),
+                    );
                   },
                   onHelpCenterTap: () {
-                    // Navigate to help center
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const HelpPage(),
+                      ),
+                    );
                   },
                   onStatisticsTap: () {
                     // Navigate to statistics
