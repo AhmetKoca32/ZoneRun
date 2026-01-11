@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class PromoBanner extends StatelessWidget {
@@ -11,16 +11,19 @@ class PromoBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    const goldColor = Color(0xFFD4AF37); // Pro badge color (theme-independent)
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       decoration: BoxDecoration(
-        color: AppColors.mediumGray,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(16),
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.mediumGray, AppColors.darkGray],
+          colors: [theme.surface, theme.secondaryBackground],
         ),
       ),
       child: Row(
@@ -32,7 +35,7 @@ class PromoBanner extends StatelessWidget {
                   child: RichText(
                     text: TextSpan(
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.medium,
                       ),
                       children: [
@@ -41,7 +44,7 @@ class PromoBanner extends StatelessWidget {
                           text: 'ÜCRETSİZ ',
                           style: TextStyle(
                             fontWeight: AppTypography.bold,
-                            color: const Color(0xFFD4AF37),
+                            color: goldColor,
                           ),
                         ),
                         const TextSpan(
@@ -58,7 +61,7 @@ class PromoBanner extends StatelessWidget {
                 const SizedBox(width: 8),
                 Icon(
                   Icons.emoji_events,
-                  color: const Color(0xFFD4AF37),
+                  color: goldColor,
                   size: 20,
                 ),
               ],
@@ -70,14 +73,14 @@ class PromoBanner extends StatelessWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: AppColors.black,
+                color: theme.primaryBackground,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFD4AF37), width: 1.5),
+                border: Border.all(color: goldColor, width: 1.5),
               ),
               child: Text(
                 'Şimdi Katıl',
                 style: AppTypography.bodySmall.copyWith(
-                  color: const Color(0xFFD4AF37),
+                  color: goldColor,
                   fontWeight: AppTypography.bold,
                   fontSize: 11,
                 ),

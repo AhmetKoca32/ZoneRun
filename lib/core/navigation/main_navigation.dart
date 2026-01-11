@@ -3,8 +3,7 @@ import 'package:flutter/material.dart';
 import '../../features/history/presentation/pages/history_page.dart';
 import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/map/presentation/pages/map_page.dart';
-import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
+import '../extensions/theme_extension_helper.dart';
 import '../widgets/custom_bottom_nav_bar.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -21,14 +20,16 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: theme.primaryBackground,
       extendBody: true,
       extendBodyBehindAppBar: true,
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: BoxDecoration(gradient: AppTheme.backgroundGradient),
+        decoration: BoxDecoration(gradient: theme.backgroundGradient),
         child: _pages[_currentIndex],
       ),
       bottomNavigationBar: CustomBottomNavBar(

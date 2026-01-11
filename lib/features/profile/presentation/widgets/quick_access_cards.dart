@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class QuickAccessCards extends StatelessWidget {
@@ -21,11 +21,13 @@ class QuickAccessCards extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.mediumGray,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -62,6 +64,8 @@ class _QuickAccessItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -71,10 +75,10 @@ class _QuickAccessItem extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: AppColors.lightGray,
+              color: theme.secondaryBackground,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: AppColors.white, size: 24),
+            child: Icon(icon, color: theme.textPrimary, size: 24),
           ),
           const SizedBox(height: 8),
           SizedBox(
@@ -82,7 +86,7 @@ class _QuickAccessItem extends StatelessWidget {
             child: Text(
               label,
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontSize: 10,
               ),
               textAlign: TextAlign.center,
@@ -139,6 +143,8 @@ class _ThemeItemState extends State<_ThemeItem>
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return GestureDetector(
       onTap: _handleTap,
       child: Column(
@@ -150,12 +156,12 @@ class _ThemeItemState extends State<_ThemeItem>
               width: 50,
               height: 50,
               decoration: BoxDecoration(
-                color: AppColors.lightGray,
+                color: theme.secondaryBackground,
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 widget.isDarkTheme ? Icons.dark_mode : Icons.light_mode,
-                color: AppColors.white,
+                color: theme.textPrimary,
                 size: 24,
               ),
             ),
@@ -172,7 +178,7 @@ class _ThemeItemState extends State<_ThemeItem>
               child: Text(
                 widget.isDarkTheme ? 'Koyu Tema' : 'Açık Tema',
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                   fontSize: 10,
                 ),
                 textAlign: TextAlign.center,

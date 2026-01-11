@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -8,6 +8,8 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -21,6 +23,9 @@ class HomeHeader extends StatelessWidget {
                   'assets/icons/zonerun-high-resolution-logo-transparent.png',
                   height: 32,
                   fit: BoxFit.contain,
+                  color: theme.textPrimary, // Logo rengini tema'ya göre ayarla
+                  colorBlendMode:
+                      BlendMode.srcIn, // Beyaz logoyu tema rengine çevir
                 ),
               ),
             ),
@@ -32,7 +37,7 @@ class HomeHeader extends StatelessWidget {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.person_3_outlined),
-                    color: AppColors.white,
+                    color: theme.textPrimary,
                     iconSize: 24,
                     onPressed: () {
                       Navigator.of(context).push(
@@ -44,7 +49,7 @@ class HomeHeader extends StatelessWidget {
                   ),
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    color: AppColors.white,
+                    color: theme.textPrimary,
                     iconSize: 24,
                     onPressed: () {
                       // Show notifications

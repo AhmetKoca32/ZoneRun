@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/models/character_model.dart';
 
@@ -16,6 +16,9 @@ class FeaturedCharacterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    const goldColor = Color(0xFFD4AF37); // Pro badge color (theme-independent)
+    
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       padding: const EdgeInsets.all(20),
@@ -24,16 +27,16 @@ class FeaturedCharacterCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            AppColors.mediumGray,
-            AppColors.mediumGray.withOpacity(0.8),
-            AppColors.lightGray.withOpacity(0.3),
+            theme.surface,
+            theme.surface.withOpacity(0.8),
+            theme.secondaryBackground.withOpacity(0.3),
           ],
           stops: const [0.0, 0.5, 1.0],
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: theme.primaryBackground.withOpacity(0.3),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -46,7 +49,7 @@ class FeaturedCharacterCard extends StatelessWidget {
             width: 140,
             height: 140,
             decoration: BoxDecoration(
-              color: AppColors.black,
+              color: theme.primaryBackground,
               borderRadius: BorderRadius.circular(16),
             ),
             child: Center(
@@ -62,7 +65,7 @@ class FeaturedCharacterCard extends StatelessWidget {
           Text(
             character.name,
             style: AppTypography.headlineSmall.copyWith(
-              color: AppColors.white,
+              color: theme.textPrimary,
               fontWeight: AppTypography.bold,
               fontSize: 22,
             ),
@@ -76,8 +79,8 @@ class FeaturedCharacterCard extends StatelessWidget {
                 : '₺${character.price.toStringAsFixed(0)}',
             style: AppTypography.titleMedium.copyWith(
               color: character.isOwned
-                  ? AppColors.whiteWithOpacity70
-                  : const Color(0xFFD4AF37),
+                  ? theme.textSecondary
+                  : goldColor,
               fontWeight: AppTypography.semiBold,
               fontSize: 18,
             ),
@@ -87,7 +90,7 @@ class FeaturedCharacterCard extends StatelessWidget {
             Text(
               character.description!,
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.whiteWithOpacity70,
+                color: theme.textSecondary,
                 fontWeight: AppTypography.light,
               ),
               textAlign: TextAlign.center,
@@ -122,7 +125,7 @@ class FeaturedCharacterCard extends StatelessWidget {
                   child: Text(
                     'Satın Al',
                     style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.black,
+                      color: theme.primaryBackground,
                       fontWeight: AppTypography.bold,
                     ),
                   ),
@@ -134,10 +137,10 @@ class FeaturedCharacterCard extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 14),
               decoration: BoxDecoration(
-                color: AppColors.lightGray,
+                color: theme.secondaryBackground,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: AppColors.white.withOpacity(0.3),
+                  color: theme.border,
                   width: 1.5,
                 ),
               ),
@@ -147,14 +150,14 @@ class FeaturedCharacterCard extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.check_circle,
-                      color: AppColors.white,
+                      color: theme.textPrimary,
                       size: 18,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'Sahip Olundu',
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
                       ),
                     ),

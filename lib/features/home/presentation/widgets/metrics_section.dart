@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/home_provider.dart';
 
@@ -170,6 +170,7 @@ class _LeftMetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     final formatted = formatter(value);
     final parts = formatted.split(' ');
     final unit = parts.length > 1 ? parts[1] : '';
@@ -183,7 +184,7 @@ class _LeftMetricCard extends StatelessWidget {
           targetValue: value,
           formatter: formatter,
           textStyle: AppTypography.displaySmall.copyWith(
-            color: AppColors.white,
+            color: theme.textPrimary,
             fontWeight: AppTypography.light,
             fontSize: 27,
           ),
@@ -193,7 +194,7 @@ class _LeftMetricCard extends StatelessWidget {
         Text(
           unit,
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.white,
+            color: theme.textPrimary,
             fontWeight: AppTypography.light,
             fontSize: 15,
           ),
@@ -203,7 +204,7 @@ class _LeftMetricCard extends StatelessWidget {
         Text(
           'FETHEDİLEN',
           style: AppTypography.labelSmall.copyWith(
-            color: AppColors.whiteWithOpacity70,
+            color: theme.textSecondary,
             fontWeight: AppTypography.light,
             letterSpacing: 1.0,
             fontSize: 11,
@@ -223,6 +224,7 @@ class _CenterMetricCircle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     final formatted = formatter(value);
     final parts = formatted.split(' ');
     final unit = parts.length > 1 ? parts[1] : '';
@@ -232,8 +234,8 @@ class _CenterMetricCircle extends StatelessWidget {
       height: 170,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: AppColors.circleGradient,
-        border: Border.all(color: AppColors.whiteWithOpacity80, width: 2),
+        gradient: theme.circleGradient,
+        border: Border.all(color: theme.border, width: 2),
       ),
       child: Center(
         child: Column(
@@ -245,7 +247,7 @@ class _CenterMetricCircle extends StatelessWidget {
               targetValue: value,
               formatter: formatter,
               textStyle: AppTypography.displayLarge.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontWeight: AppTypography.light,
                 fontSize: 48,
               ),
@@ -255,7 +257,7 @@ class _CenterMetricCircle extends StatelessWidget {
             Text(
               unit,
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontWeight: AppTypography.light,
                 fontSize: 16,
               ),
@@ -265,7 +267,7 @@ class _CenterMetricCircle extends StatelessWidget {
             Text(
               'BUGÜN',
               style: AppTypography.labelSmall.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontWeight: AppTypography.light,
                 letterSpacing: 1.0,
                 fontSize: 12,
@@ -287,6 +289,7 @@ class _RightMetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     final formatted = formatter(value);
     final parts = formatted.split(' ');
     final unit = parts.length > 1 ? parts[1] : '';
@@ -300,7 +303,7 @@ class _RightMetricCard extends StatelessWidget {
           targetValue: value,
           formatter: formatter,
           textStyle: AppTypography.displaySmall.copyWith(
-            color: AppColors.white,
+            color: theme.textPrimary,
             fontWeight: AppTypography.light,
             fontSize: 27,
           ),
@@ -310,7 +313,7 @@ class _RightMetricCard extends StatelessWidget {
         Text(
           unit,
           style: AppTypography.bodyMedium.copyWith(
-            color: AppColors.white,
+            color: theme.textPrimary,
             fontWeight: AppTypography.light,
             fontSize: 15,
           ),
@@ -321,7 +324,7 @@ class _RightMetricCard extends StatelessWidget {
         Text(
           'TOPLAM',
           style: AppTypography.labelSmall.copyWith(
-            color: AppColors.whiteWithOpacity70,
+            color: theme.textSecondary,
             fontWeight: AppTypography.light,
             letterSpacing: 1.0,
             fontSize: 11,
@@ -348,6 +351,8 @@ class _AnimatedSeeStatsButton extends StatefulWidget {
 class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return GestureDetector(
       onTap: widget.onTap,
       child: Padding(
@@ -359,7 +364,7 @@ class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
             Text(
               'İSTATİSTİKLER',
               style: TextStyle(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -374,7 +379,7 @@ class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
                   : 0.0, // Up arrow when open (180°), down when closed
               child: Icon(
                 Icons.keyboard_arrow_down,
-                color: AppColors.white,
+                color: theme.textPrimary,
                 size: 16,
               ),
             ),
@@ -534,10 +539,12 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -546,13 +553,13 @@ class _StatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.mediumGray, size: 18),
+              Icon(icon, color: theme.textTertiary, size: 18),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   title,
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mediumGray,
+                    color: theme.textSecondary,
                     fontWeight: AppTypography.medium,
                     letterSpacing: 0.5,
                     fontSize: 9,
@@ -566,8 +573,8 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: AppTypography.titleMedium.copyWith(
-              color: AppColors.black,
-              fontWeight: AppTypography.semiBold,
+              color: theme.textPrimary,
+              fontWeight: AppTypography.bold,
               fontSize: 14,
             ),
             overflow: TextOverflow.ellipsis,
@@ -579,7 +586,7 @@ class _StatCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
               decoration: BoxDecoration(
-                color: AppColors.mediumGray.withOpacity(0.1),
+                color: theme.textTertiary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
               child: RichText(
@@ -590,15 +597,15 @@ class _StatCard extends StatelessWidget {
                     TextSpan(
                       text: '$badgeLabel: ',
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.mediumGray,
-                        fontWeight: AppTypography.regular,
-                        fontSize: 8,
+                        color: theme.textSecondary,
+                        fontWeight: AppTypography.medium,
+                        fontSize: 9,
                       ),
                     ),
                     TextSpan(
                       text: badgeValue,
                       style: AppTypography.labelSmall.copyWith(
-                        color: AppColors.black,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
                         fontSize: 9,
                       ),
@@ -629,10 +636,12 @@ class _CalorieStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: theme.surface,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -641,13 +650,17 @@ class _CalorieStatCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.local_fire_department, color: AppColors.mediumGray, size: 18),
+              Icon(
+                Icons.local_fire_department,
+                color: theme.textTertiary,
+                size: 18,
+              ),
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
                   'Kalori',
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.mediumGray,
+                    color: theme.textSecondary,
                     fontWeight: AppTypography.medium,
                     letterSpacing: 0.5,
                     fontSize: 9,
@@ -662,8 +675,8 @@ class _CalorieStatCard extends StatelessWidget {
           Text(
             formatCalories(todayCalories),
             style: AppTypography.titleMedium.copyWith(
-              color: AppColors.black,
-              fontWeight: AppTypography.semiBold,
+              color: theme.textPrimary,
+              fontWeight: AppTypography.bold,
               fontSize: 14,
             ),
             overflow: TextOverflow.ellipsis,
@@ -674,7 +687,7 @@ class _CalorieStatCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.mediumGray.withOpacity(0.1),
+              color: theme.textTertiary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
             child: RichText(
@@ -685,15 +698,15 @@ class _CalorieStatCard extends StatelessWidget {
                   TextSpan(
                     text: 'Toplam: ',
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.mediumGray,
-                      fontWeight: AppTypography.regular,
-                      fontSize: 8,
+                      color: theme.textSecondary,
+                      fontWeight: AppTypography.medium,
+                      fontSize: 9,
                     ),
                   ),
                   TextSpan(
                     text: formatCalories(totalCalories),
                     style: AppTypography.labelSmall.copyWith(
-                      color: AppColors.black,
+                      color: theme.textPrimary,
                       fontWeight: AppTypography.semiBold,
                       fontSize: 9,
                     ),

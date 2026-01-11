@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/home_provider.dart';
 
@@ -10,6 +10,8 @@ class StatsCardsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Consumer<HomeProvider>(
       builder: (context, provider, child) {
         return Padding(
@@ -19,8 +21,8 @@ class StatsCardsSection extends StatelessWidget {
               // Navigate to map or start tracking
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.white,
-              foregroundColor: AppColors.black,
+              backgroundColor: theme.accent,
+              foregroundColor: theme.primaryBackground,
               padding: const EdgeInsets.symmetric(vertical: 18),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -35,12 +37,12 @@ class StatsCardsSection extends StatelessWidget {
                   'BAŞLA',
                   style: AppTypography.labelLarge.copyWith(
                     fontWeight: AppTypography.bold,
-                    color: AppColors.black,
+                    color: theme.primaryBackground,
                     letterSpacing: 1.5,
                   ),
                 ),
                 const SizedBox(width: 8),
-                Icon(Icons.arrow_forward, color: AppColors.black, size: 20),
+                Icon(Icons.arrow_forward, color: theme.primaryBackground, size: 20),
               ],
             ),
           ),

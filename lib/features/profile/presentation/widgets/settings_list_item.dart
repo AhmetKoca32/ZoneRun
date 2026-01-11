@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class SettingsListItem extends StatelessWidget {
@@ -21,20 +21,22 @@ class SettingsListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.mediumGray,
+          color: theme.surface,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
           children: [
             Icon(
               icon,
-              color: AppColors.white,
+              color: theme.textPrimary,
               size: 22,
             ),
             const SizedBox(width: 12),
@@ -42,7 +44,7 @@ class SettingsListItem extends StatelessWidget {
               child: Text(
                 title,
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                   fontWeight: AppTypography.medium,
                 ),
               ),
@@ -51,13 +53,13 @@ class SettingsListItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: badgeColor ?? AppColors.lightGray,
+                  color: badgeColor ?? theme.secondaryBackground,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   badgeText!,
                   style: AppTypography.labelSmall.copyWith(
-                    color: AppColors.white,
+                    color: theme.textPrimary,
                     fontSize: 10,
                   ),
                 ),
@@ -66,7 +68,7 @@ class SettingsListItem extends StatelessWidget {
             ],
             Icon(
               Icons.arrow_forward_ios,
-              color: AppColors.whiteWithOpacity70,
+              color: theme.textSecondary,
               size: 14,
             ),
           ],

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/store_provider.dart';
 import '../widgets/featured_character_card.dart';
@@ -13,13 +13,15 @@ class StorePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: theme.primaryBackground,
       body: Consumer<StoreProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.white),
+            return Center(
+              child: CircularProgressIndicator(color: theme.textPrimary),
             );
           }
 
@@ -42,12 +44,12 @@ class StorePage extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppColors.lightGray,
+                              color: theme.secondaryBackground,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.arrow_back,
-                              color: AppColors.black,
+                              color: theme.textPrimary,
                               size: 20,
                             ),
                           ),
@@ -56,7 +58,7 @@ class StorePage extends StatelessWidget {
                         Text(
                           'Mağaza',
                           style: AppTypography.headlineSmall.copyWith(
-                            color: AppColors.white,
+                            color: theme.textPrimary,
                             fontWeight: AppTypography.bold,
                             fontSize: 24,
                           ),
@@ -81,7 +83,7 @@ class StorePage extends StatelessWidget {
                         Text(
                           'Öne Çıkan',
                           style: AppTypography.titleMedium.copyWith(
-                            color: AppColors.white,
+                            color: theme.textPrimary,
                             fontWeight: AppTypography.bold,
                           ),
                         ),

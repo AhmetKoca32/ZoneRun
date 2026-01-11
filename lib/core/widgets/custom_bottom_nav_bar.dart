@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../theme/app_colors.dart';
+import '../extensions/theme_extension_helper.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -14,14 +14,16 @@ class CustomBottomNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 26),
       decoration: BoxDecoration(
-        color: AppColors.darkGray,
+        color: theme.secondaryBackground,
         borderRadius: BorderRadius.circular(50),
         boxShadow: [
           BoxShadow(
-            color: AppColors.blackWithOpacity50,
+            color: theme.primaryBackground.withOpacity(0.5),
             blurRadius: 20,
             offset: const Offset(0, 4),
             spreadRadius: 0,
@@ -34,6 +36,7 @@ class CustomBottomNavBar extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _buildNavItem(
+            context: context,
             icon: Icons.home_outlined,
             activeIcon: Icons.home,
             label: 'Ana Sayfa',
@@ -41,6 +44,7 @@ class CustomBottomNavBar extends StatelessWidget {
             isActive: currentIndex == 0,
           ),
           _buildNavItem(
+            context: context,
             icon: Icons.map_outlined,
             activeIcon: Icons.map,
             label: 'Harita',
@@ -48,6 +52,7 @@ class CustomBottomNavBar extends StatelessWidget {
             isActive: currentIndex == 1,
           ),
           _buildNavItem(
+            context: context,
             icon: Icons.history_outlined,
             activeIcon: Icons.history,
             label: 'Geçmiş',
@@ -65,14 +70,17 @@ class CustomBottomNavBar extends StatelessWidget {
     required String label,
     required int index,
     required bool isActive,
+    required BuildContext context,
   }) {
+    final theme = context.appTheme;
+    
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive ? AppColors.mediumGray : Colors.transparent,
+          color: isActive ? theme.surface : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: Column(
@@ -82,14 +90,14 @@ class CustomBottomNavBar extends StatelessWidget {
           children: [
             Icon(
               isActive ? activeIcon : icon,
-              color: AppColors.white,
+              color: theme.textPrimary,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: const TextStyle(
-                color: AppColors.white,
+              style: TextStyle(
+                color: theme.textPrimary,
                 fontSize: 12,
                 fontWeight: FontWeight.w400,
                 letterSpacing: 0.3,

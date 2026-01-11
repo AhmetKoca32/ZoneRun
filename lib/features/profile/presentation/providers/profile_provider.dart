@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/services/profile_service.dart';
 import '../../../history/data/services/history_service.dart';
@@ -34,6 +35,7 @@ class ProfileProvider extends ChangeNotifier {
   ProfileProvider() {
     _loadProfileData();
     _loadUserProfile();
+    _loadThemePreference();
   }
   
   Future<void> _loadUserProfile() async {
@@ -77,10 +79,34 @@ class ProfileProvider extends ChangeNotifier {
     return _profileService.formatDistance(distanceInMeters);
   }
 
-  void toggleTheme() {
+  /// Load theme preference from SharedPreferences
+  Future<void> _loadThemePreference() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      _isDarkTheme = prefs.getBool('isDarkTheme') ?? true; // Default to dark
+      notifyListeners();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading theme preference: $e');
+      }
+      // Keep default value
+    }
+  }
+
+  /// Toggle theme and save preference
+  Future<void> toggleTheme() async {
     _isDarkTheme = !_isDarkTheme;
     notifyListeners();
-    // TODO: Implement actual theme change when light theme is ready
+    
+    // Save to SharedPreferences
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isDarkTheme', _isDarkTheme);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving theme preference: $e');
+      }
+    }
   }
   
   // User profile methods

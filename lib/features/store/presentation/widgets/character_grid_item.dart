@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/models/character_model.dart';
 
@@ -16,15 +16,18 @@ class CharacterGridItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    const goldColor = Color(0xFFD4AF37); // Pro badge color (theme-independent)
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: AppColors.mediumGray,
+          color: theme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: character.isOwned
-                ? AppColors.white.withOpacity(0.3)
+                ? theme.border
                 : Colors.transparent,
             width: 1.5,
           ),
@@ -39,7 +42,7 @@ class CharacterGridItem extends StatelessWidget {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: AppColors.black,
+                    color: theme.primaryBackground,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
@@ -54,13 +57,13 @@ class CharacterGridItem extends StatelessWidget {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.6),
+                      color: theme.primaryBackground.withOpacity(0.6),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.lock,
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         size: 24,
                       ),
                     ),
@@ -73,12 +76,12 @@ class CharacterGridItem extends StatelessWidget {
                       width: 16,
                       height: 16,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37),
+                        color: goldColor,
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         Icons.star,
-                        color: AppColors.black,
+                        color: theme.primaryBackground,
                         size: 10,
                       ),
                     ),
@@ -91,7 +94,7 @@ class CharacterGridItem extends StatelessWidget {
             Text(
               character.name,
               style: AppTypography.bodySmall.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
                 fontWeight: AppTypography.semiBold,
                 fontSize: 12,
               ),
@@ -108,8 +111,8 @@ class CharacterGridItem extends StatelessWidget {
                   : '₺${character.price.toStringAsFixed(0)}',
               style: AppTypography.labelSmall.copyWith(
                 color: character.isOwned
-                    ? AppColors.whiteWithOpacity70
-                    : const Color(0xFFD4AF37),
+                    ? theme.textSecondary
+                    : goldColor,
                 fontWeight: AppTypography.medium,
                 fontSize: 10,
               ),

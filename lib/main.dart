@@ -22,11 +22,17 @@ class ZoneRunApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
         ChangeNotifierProvider(create: (_) => StoreProvider()),
       ],
-      child: MaterialApp(
-        title: 'ZoneRun',
-        theme: AppTheme.darkTheme,
-        debugShowCheckedModeBanner: false,
-        home: const SplashScreen(),
+      child: Consumer<ProfileProvider>(
+        builder: (context, profileProvider, child) {
+          return MaterialApp(
+            title: 'ZoneRun',
+            theme: profileProvider.isDarkTheme
+                ? AppTheme.darkTheme
+                : AppTheme.lightTheme,
+            debugShowCheckedModeBanner: false,
+            home: const SplashScreen(),
+          );
+        },
       ),
     );
   }

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/promo_banner.dart';
@@ -17,13 +17,15 @@ class ProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: theme.primaryBackground,
       body: Consumer<ProfileProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.white),
+            return Center(
+              child: CircularProgressIndicator(color: theme.textPrimary),
             );
           }
 
@@ -43,12 +45,12 @@ class ProfilePage extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppColors.lightGray,
+                              color: theme.secondaryBackground,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.close,
-                              color: AppColors.black,
+                              color: theme.textPrimary,
                               size: 20,
                             ),
                           ),
@@ -67,7 +69,7 @@ class ProfilePage extends StatelessWidget {
                       Text(
                         'Merhaba',
                         style: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.whiteWithOpacity70,
+                          color: theme.textSecondary,
                           fontWeight: AppTypography.light,
                         ),
                       ),
@@ -75,7 +77,7 @@ class ProfilePage extends StatelessWidget {
                       Text(
                         provider.userName,
                         style: AppTypography.headlineMedium.copyWith(
-                          color: AppColors.white,
+                          color: theme.textPrimary,
                           fontWeight: AppTypography.extraBold,
                           fontSize: 26,
                         ),

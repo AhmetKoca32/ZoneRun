@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../data/services/motivation_quote_service.dart';
 
@@ -9,6 +9,7 @@ class MotivationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     final quote = MotivationQuoteService.getDailyQuote();
 
     return Padding(
@@ -21,13 +22,13 @@ class MotivationCard extends StatelessWidget {
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
             colors: [
-              AppColors.white.withOpacity(0.15),
-              AppColors.white.withOpacity(0.05),
+              theme.textPrimary.withOpacity(0.15),
+              theme.textPrimary.withOpacity(0.05),
             ],
           ),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: AppColors.white.withOpacity(0.2),
+            color: theme.border,
             width: 1,
           ),
         ),
@@ -41,7 +42,7 @@ class MotivationCard extends StatelessWidget {
                   Text(
                     quote.quote,
                     style: AppTypography.bodyMedium.copyWith(
-                      color: AppColors.white,
+                      color: theme.textPrimary,
                       fontWeight: AppTypography.regular,
                       height: 1.4,
                     ),
@@ -50,7 +51,7 @@ class MotivationCard extends StatelessWidget {
                   Text(
                     '— ${quote.author}',
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.white.withOpacity(0.7),
+                      color: theme.textSecondary,
                       fontWeight: AppTypography.light,
                       fontStyle: FontStyle.italic,
                     ),
@@ -61,7 +62,7 @@ class MotivationCard extends StatelessWidget {
             const SizedBox(width: 12),
             Icon(
               Icons.format_quote,
-              color: AppColors.white.withOpacity(0.3),
+              color: theme.textTertiary,
               size: 32,
             ),
           ],

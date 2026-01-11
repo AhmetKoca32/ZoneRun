@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class HelpPage extends StatefulWidget {
@@ -43,27 +43,29 @@ class _HelpPageState extends State<HelpPage> {
       if (await canLaunchUrl(mailtoUri)) {
         await launchUrl(mailtoUri);
         if (mounted) {
+          final theme = context.appTheme;
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 'Mail uygulamanız açıldı',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                 ),
               ),
-              backgroundColor: AppColors.mediumGray,
+              backgroundColor: theme.surface,
             ),
           );
         }
       } else {
         if (mounted) {
+          final theme = context.appTheme;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
                 'Mail gönderilemedi. Lütfen mail uygulamanızı kontrol edin.',
                 style: AppTypography.bodyMedium.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                 ),
               ),
               backgroundColor: Colors.red,
@@ -73,12 +75,13 @@ class _HelpPageState extends State<HelpPage> {
       }
     } catch (e) {
       if (mounted) {
+        final theme = context.appTheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               'Bir hata oluştu: $e',
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
               ),
             ),
             backgroundColor: Colors.red,
@@ -96,8 +99,10 @@ class _HelpPageState extends State<HelpPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: theme.primaryBackground,
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -114,12 +119,12 @@ class _HelpPageState extends State<HelpPage> {
                         width: 36,
                         height: 36,
                         decoration: BoxDecoration(
-                          color: AppColors.lightGray,
+                          color: theme.secondaryBackground,
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.arrow_back,
-                          color: AppColors.black,
+                          color: theme.textPrimary,
                           size: 20,
                         ),
                       ),
@@ -128,7 +133,7 @@ class _HelpPageState extends State<HelpPage> {
                     Text(
                       'Yardım',
                       style: AppTypography.headlineSmall.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.bold,
                         fontSize: 24,
                       ),
@@ -148,9 +153,9 @@ class _HelpPageState extends State<HelpPage> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.mediumGray,
-                      AppColors.mediumGray.withOpacity(0.8),
-                      AppColors.lightGray.withOpacity(0.3),
+                      theme.surface,
+                      theme.surface.withOpacity(0.8),
+                      theme.secondaryBackground.withOpacity(0.3),
                     ],
                     stops: const [0.0, 0.5, 1.0],
                   ),
@@ -172,12 +177,12 @@ class _HelpPageState extends State<HelpPage> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppColors.black.withOpacity(0.3),
+                        color: theme.primaryBackground.withOpacity(0.3),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.support_agent,
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         size: 40,
                       ),
                     ),
@@ -186,7 +191,7 @@ class _HelpPageState extends State<HelpPage> {
                       child: Text(
                         'Bize Ulaşın',
                         style: AppTypography.headlineSmall.copyWith(
-                          color: AppColors.white,
+                          color: theme.textPrimary,
                           fontWeight: AppTypography.bold,
                           fontSize: 22,
                         ),
@@ -200,7 +205,7 @@ class _HelpPageState extends State<HelpPage> {
                         child: Text(
                           'Sorularınız veya önerileriniz için bize mail gönderebilirsiniz',
                           style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.whiteWithOpacity70,
+                            color: theme.textSecondary,
                             fontWeight: AppTypography.light,
                           ),
                           textAlign: TextAlign.center,
@@ -224,7 +229,7 @@ class _HelpPageState extends State<HelpPage> {
                     Text(
                       'Konu',
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
                       ),
                     ),
@@ -232,33 +237,33 @@ class _HelpPageState extends State<HelpPage> {
                     TextFormField(
                       controller: _subjectController,
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Örn: Uygulama hatası, öneri...',
                         hintStyle: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.whiteWithOpacity70,
+                          color: theme.textSecondary,
                         ),
                         filled: true,
-                        fillColor: AppColors.mediumGray,
+                        fillColor: theme.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white.withOpacity(0.2),
+                            color: theme.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white.withOpacity(0.2),
+                            color: theme.border,
                             width: 1.5,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white,
+                            color: theme.accent,
                             width: 2,
                           ),
                         ),
@@ -280,7 +285,7 @@ class _HelpPageState extends State<HelpPage> {
                     Text(
                       'Mesaj',
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
                       ),
                     ),
@@ -289,33 +294,33 @@ class _HelpPageState extends State<HelpPage> {
                       controller: _messageController,
                       maxLines: 8,
                       style: AppTypography.bodyMedium.copyWith(
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Mesajınızı buraya yazın...',
                         hintStyle: AppTypography.bodyMedium.copyWith(
-                          color: AppColors.whiteWithOpacity70,
+                          color: theme.textSecondary,
                         ),
                         filled: true,
-                        fillColor: AppColors.mediumGray,
+                        fillColor: theme.surface,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white.withOpacity(0.2),
+                            color: theme.border,
                             width: 1.5,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white.withOpacity(0.2),
+                            color: theme.border,
                             width: 1.5,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
                           borderSide: BorderSide(
-                            color: AppColors.white,
+                            color: theme.accent,
                             width: 2,
                           ),
                         ),
@@ -342,14 +347,14 @@ class _HelpPageState extends State<HelpPage> {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.white,
-                              AppColors.white.withOpacity(0.9),
+                              theme.accent,
+                              theme.accent.withOpacity(0.9),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.white.withOpacity(0.3),
+                              color: theme.accent.withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -363,7 +368,7 @@ class _HelpPageState extends State<HelpPage> {
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
                                     valueColor: AlwaysStoppedAnimation<Color>(
-                                      AppColors.black,
+                                      theme.primaryBackground,
                                     ),
                                   ),
                                 )
@@ -372,14 +377,14 @@ class _HelpPageState extends State<HelpPage> {
                                   children: [
                                     Icon(
                                       Icons.send,
-                                      color: AppColors.black,
+                                      color: theme.primaryBackground,
                                       size: 20,
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
                                       'Mail Gönder',
                                       style: AppTypography.bodyLarge.copyWith(
-                                        color: AppColors.black,
+                                        color: theme.primaryBackground,
                                         fontWeight: AppTypography.bold,
                                       ),
                                     ),

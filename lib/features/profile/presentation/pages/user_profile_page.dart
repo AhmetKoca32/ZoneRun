@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
-import '../../../../core/theme/app_colors.dart';
+import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/profile_hero_section.dart';
@@ -15,13 +15,15 @@ class UserProfilePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    
     return Scaffold(
-      backgroundColor: AppColors.black,
+      backgroundColor: theme.primaryBackground,
       body: Consumer<ProfileProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: AppColors.white),
+            return Center(
+              child: CircularProgressIndicator(color: theme.textPrimary),
             );
           }
 
@@ -41,12 +43,12 @@ class UserProfilePage extends StatelessWidget {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: AppColors.lightGray,
+                              color: theme.secondaryBackground,
                               shape: BoxShape.circle,
                             ),
-                            child: const Icon(
+                            child: Icon(
                               Icons.arrow_back,
-                              color: AppColors.black,
+                              color: theme.textPrimary,
                               size: 20,
                             ),
                           ),
@@ -110,6 +112,8 @@ class UserProfilePage extends StatelessWidget {
 
   void _showPhotoSelectionDialog(
       BuildContext context, ProfileProvider provider) {
+    final theme = context.appTheme;
+    
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -120,8 +124,8 @@ class UserProfilePage extends StatelessWidget {
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
             colors: [
-              AppColors.mediumGray,
-              AppColors.mediumGray.withOpacity(0.95),
+              theme.surface,
+              theme.surface.withOpacity(0.95),
             ],
           ),
           borderRadius: const BorderRadius.vertical(
@@ -145,7 +149,7 @@ class UserProfilePage extends StatelessWidget {
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(
-                  color: AppColors.whiteWithOpacity70,
+                  color: theme.textSecondary,
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -159,12 +163,12 @@ class UserProfilePage extends StatelessWidget {
                       width: 48,
                       height: 48,
                       decoration: BoxDecoration(
-                        color: AppColors.black.withOpacity(0.3),
+                        color: theme.primaryBackground.withOpacity(0.3),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.camera_alt,
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         size: 24,
                       ),
                     ),
@@ -176,7 +180,7 @@ class UserProfilePage extends StatelessWidget {
                           Text(
                             'Profil Fotoğrafı Seç',
                             style: AppTypography.headlineSmall.copyWith(
-                              color: AppColors.white,
+                              color: theme.textPrimary,
                               fontWeight: AppTypography.bold,
                               fontSize: 20,
                             ),
@@ -185,7 +189,7 @@ class UserProfilePage extends StatelessWidget {
                           Text(
                             'Fotoğraf veya avatar seçin',
                             style: AppTypography.bodySmall.copyWith(
-                              color: AppColors.whiteWithOpacity70,
+                              color: theme.textSecondary,
                               fontWeight: AppTypography.light,
                             ),
                           ),
@@ -202,6 +206,7 @@ class UserProfilePage extends StatelessWidget {
                 child: Column(
                   children: [
                     _buildPhotoOptionCard(
+                      context: context,
                       icon: Icons.photo_library,
                       title: 'Galeriden Seç',
                       subtitle: 'Fotoğraf galerinizden seçin',
@@ -212,6 +217,7 @@ class UserProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildPhotoOptionCard(
+                      context: context,
                       icon: Icons.camera_alt,
                       title: 'Kamera ile Çek',
                       subtitle: 'Yeni fotoğraf çekin',
@@ -222,6 +228,7 @@ class UserProfilePage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     _buildPhotoOptionCard(
+                      context: context,
                       icon: Icons.face,
                       title: 'Avatar Seç',
                       subtitle: 'Hazır avatar\'lardan seçin',
@@ -233,6 +240,7 @@ class UserProfilePage extends StatelessWidget {
                     if (provider.avatarUrl != null) ...[
                       const SizedBox(height: 12),
                       _buildPhotoOptionCard(
+                        context: context,
                         icon: Icons.delete_outline,
                         title: 'Fotoğrafı Kaldır',
                         subtitle: 'Mevcut fotoğrafı sil',
@@ -257,6 +265,7 @@ class UserProfilePage extends StatelessWidget {
   }
 
   Widget _buildPhotoOptionCard({
+    required BuildContext context,
     required IconData icon,
     required String title,
     required String subtitle,
@@ -264,18 +273,19 @@ class UserProfilePage extends StatelessWidget {
     Color? iconColor,
     Color? textColor,
   }) {
-    final defaultIconColor = iconColor ?? AppColors.white;
-    final defaultTextColor = textColor ?? AppColors.white;
+    final theme = context.appTheme;
+    final defaultIconColor = iconColor ?? theme.textPrimary;
+    final defaultTextColor = textColor ?? theme.textPrimary;
     
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.lightGray.withOpacity(0.5),
+          color: theme.secondaryBackground.withOpacity(0.5),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: AppColors.white.withOpacity(0.1),
+            color: theme.border,
             width: 1,
           ),
         ),
@@ -285,7 +295,7 @@ class UserProfilePage extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.black.withOpacity(0.3),
+                color: theme.primaryBackground.withOpacity(0.3),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -310,7 +320,7 @@ class UserProfilePage extends StatelessWidget {
                   Text(
                     subtitle,
                     style: AppTypography.bodySmall.copyWith(
-                      color: AppColors.whiteWithOpacity70,
+                      color: theme.textSecondary,
                       fontWeight: AppTypography.light,
                       fontSize: 12,
                     ),
@@ -320,7 +330,7 @@ class UserProfilePage extends StatelessWidget {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: AppColors.whiteWithOpacity70,
+              color: theme.textSecondary,
               size: 16,
             ),
           ],
@@ -359,14 +369,16 @@ class UserProfilePage extends StatelessWidget {
 
   void _showAvatarSelectionDialog(
       BuildContext context, ProfileProvider provider) {
+    final theme = context.appTheme;
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.mediumGray,
+        backgroundColor: theme.surface,
         title: Text(
           'Avatar Seç',
           style: AppTypography.titleMedium.copyWith(
-            color: AppColors.white,
+            color: theme.textPrimary,
           ),
         ),
         content: SizedBox(
@@ -388,11 +400,11 @@ class UserProfilePage extends StatelessWidget {
                 },
                 child: Container(
                   decoration: BoxDecoration(
-                    color: AppColors.lightGray,
+                    color: theme.secondaryBackground,
                     shape: BoxShape.circle,
                     border: Border.all(
                       color: provider.avatarIndex == index
-                          ? AppColors.white
+                          ? theme.accent
                           : Colors.transparent,
                       width: 2,
                     ),
@@ -414,7 +426,7 @@ class UserProfilePage extends StatelessWidget {
             child: Text(
               'İptal',
               style: AppTypography.bodyMedium.copyWith(
-                color: AppColors.white,
+                color: theme.textPrimary,
               ),
             ),
           ),
@@ -425,11 +437,12 @@ class UserProfilePage extends StatelessWidget {
 
   void _showNameEditDialog(
       BuildContext context, ProfileProvider provider) {
+    final theme = context.appTheme;
     final textController = TextEditingController(text: provider.userName);
     
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.7),
+      barrierColor: theme.primaryBackground.withOpacity(0.7),
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.symmetric(horizontal: 20),
@@ -440,9 +453,9 @@ class UserProfilePage extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                AppColors.mediumGray,
-                AppColors.mediumGray.withOpacity(0.9),
-                AppColors.lightGray.withOpacity(0.3),
+                theme.surface,
+                theme.surface.withOpacity(0.9),
+                theme.secondaryBackground.withOpacity(0.3),
               ],
               stops: const [0.0, 0.5, 1.0],
             ),
@@ -467,12 +480,12 @@ class UserProfilePage extends StatelessWidget {
                     width: 48,
                     height: 48,
                     decoration: BoxDecoration(
-                      color: AppColors.black.withOpacity(0.3),
+                      color: theme.primaryBackground.withOpacity(0.3),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(
+                    child: Icon(
                       Icons.person_outline,
-                      color: AppColors.white,
+                      color: theme.textPrimary,
                       size: 24,
                     ),
                   ),
@@ -482,12 +495,12 @@ class UserProfilePage extends StatelessWidget {
                       width: 32,
                       height: 32,
                       decoration: BoxDecoration(
-                        color: AppColors.lightGray,
+                        color: theme.secondaryBackground,
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.close,
-                        color: AppColors.white,
+                        color: theme.textPrimary,
                         size: 18,
                       ),
                     ),
@@ -500,7 +513,7 @@ class UserProfilePage extends StatelessWidget {
               Text(
                 'İsim Düzenle',
                 style: AppTypography.headlineSmall.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                   fontWeight: AppTypography.bold,
                   fontSize: 22,
                 ),
@@ -509,7 +522,7 @@ class UserProfilePage extends StatelessWidget {
               Text(
                 'Yeni isminizi girin',
                 style: AppTypography.bodySmall.copyWith(
-                  color: AppColors.whiteWithOpacity70,
+                  color: theme.textSecondary,
                   fontWeight: AppTypography.light,
                 ),
               ),
@@ -520,35 +533,35 @@ class UserProfilePage extends StatelessWidget {
                 controller: textController,
                 autofocus: true,
                 style: AppTypography.bodyLarge.copyWith(
-                  color: AppColors.white,
+                  color: theme.textPrimary,
                   fontWeight: AppTypography.medium,
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
                   hintText: 'İsminizi girin',
                   hintStyle: AppTypography.bodyMedium.copyWith(
-                    color: AppColors.whiteWithOpacity70,
+                    color: theme.textSecondary,
                   ),
                   filled: true,
-                  fillColor: AppColors.black.withOpacity(0.3),
+                  fillColor: theme.primaryBackground.withOpacity(0.3),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                      color: AppColors.white.withOpacity(0.2),
+                      color: theme.border,
                       width: 1.5,
                     ),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                      color: AppColors.white.withOpacity(0.2),
+                      color: theme.border,
                       width: 1.5,
                     ),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide(
-                      color: AppColors.white,
+                      color: theme.accent,
                       width: 2,
                     ),
                   ),
@@ -569,10 +582,10 @@ class UserProfilePage extends StatelessWidget {
                       child: Container(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         decoration: BoxDecoration(
-                          color: AppColors.black.withOpacity(0.3),
+                          color: theme.primaryBackground.withOpacity(0.3),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.white.withOpacity(0.3),
+                            color: theme.border,
                             width: 1.5,
                           ),
                         ),
@@ -580,7 +593,7 @@ class UserProfilePage extends StatelessWidget {
                           child: Text(
                             'İptal',
                             style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.white,
+                              color: theme.textPrimary,
                               fontWeight: AppTypography.semiBold,
                             ),
                           ),
@@ -602,14 +615,14 @@ class UserProfilePage extends StatelessWidget {
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              AppColors.white,
-                              AppColors.white.withOpacity(0.9),
+                              theme.accent,
+                              theme.accent.withOpacity(0.9),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.white.withOpacity(0.3),
+                              color: theme.accent.withOpacity(0.3),
                               blurRadius: 8,
                               offset: const Offset(0, 4),
                             ),
@@ -619,7 +632,7 @@ class UserProfilePage extends StatelessWidget {
                           child: Text(
                             'Kaydet',
                             style: AppTypography.bodyMedium.copyWith(
-                              color: AppColors.black,
+                              color: theme.primaryBackground,
                               fontWeight: AppTypography.bold,
                             ),
                           ),

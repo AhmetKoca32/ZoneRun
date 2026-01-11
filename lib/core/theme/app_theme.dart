@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
+import 'app_theme_extension.dart';
 
 class AppTheme {
   // Colors - Use AppColors instead
@@ -29,38 +30,43 @@ class AppTheme {
 
   // Theme Data
   static ThemeData get darkTheme {
+    final extension = AppThemeExtension.dark();
+    
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.black,
+      scaffoldBackgroundColor: extension.primaryBackground,
+      extensions: <ThemeExtension<dynamic>>[
+        extension,
+      ],
       colorScheme: ColorScheme.dark(
-        primary: AppColors.white,
-        secondary: AppColors.white,
-        surface: AppColors.black,
-        background: AppColors.black,
-        error: AppColors.white,
-        onPrimary: AppColors.black,
-        onSecondary: AppColors.black,
-        onSurface: AppColors.white,
-        onBackground: AppColors.white,
-        onError: AppColors.black,
+        primary: extension.accent,
+        secondary: extension.accent,
+        surface: extension.surface,
+        background: extension.primaryBackground,
+        error: extension.accent,
+        onPrimary: extension.primaryBackground,
+        onSecondary: extension.primaryBackground,
+        onSurface: extension.textPrimary,
+        onBackground: extension.textPrimary,
+        onError: extension.primaryBackground,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.black,
+        backgroundColor: extension.primaryBackground,
         elevation: 0,
         centerTitle: true,
-        iconTheme: IconThemeData(color: AppColors.white),
+        iconTheme: IconThemeData(color: extension.textPrimary),
         titleTextStyle: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.5,
         ),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppColors.black,
-        selectedItemColor: AppColors.white,
-        unselectedItemColor: AppColors.mediumGray,
+        backgroundColor: extension.primaryBackground,
+        selectedItemColor: extension.textPrimary,
+        unselectedItemColor: extension.textTertiary,
         selectedLabelStyle: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w500,
@@ -76,55 +82,165 @@ class AppTheme {
       ),
       textTheme: TextTheme(
         displayLarge: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 32,
           fontWeight: FontWeight.w700,
           letterSpacing: -1,
         ),
         displayMedium: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 28,
           fontWeight: FontWeight.w700,
           letterSpacing: -0.8,
         ),
         displaySmall: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 24,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.6,
         ),
         headlineMedium: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.5,
         ),
         titleLarge: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.4,
         ),
         titleMedium: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w500,
           letterSpacing: -0.3,
         ),
         bodyLarge: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 16,
           fontWeight: FontWeight.w400,
           letterSpacing: -0.2,
         ),
         bodyMedium: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
           fontSize: 14,
           fontWeight: FontWeight.w400,
           letterSpacing: -0.2,
         ),
         bodySmall: TextStyle(
-          color: AppColors.white,
+          color: extension.textPrimary,
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.1,
+        ),
+      ),
+    );
+  }
+
+  static ThemeData get lightTheme {
+    final extension = AppThemeExtension.light();
+    
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: extension.primaryBackground,
+      extensions: <ThemeExtension<dynamic>>[
+        extension,
+      ],
+      colorScheme: ColorScheme.light(
+        primary: extension.accent,
+        secondary: extension.accent,
+        surface: extension.surface,
+        background: extension.primaryBackground,
+        error: extension.accent,
+        onPrimary: extension.primaryBackground,
+        onSecondary: extension.primaryBackground,
+        onSurface: extension.textPrimary,
+        onBackground: extension.textPrimary,
+        onError: extension.primaryBackground,
+      ),
+      appBarTheme: AppBarTheme(
+        backgroundColor: extension.primaryBackground,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: IconThemeData(color: extension.textPrimary),
+        titleTextStyle: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
+        ),
+      ),
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: extension.primaryBackground,
+        selectedItemColor: extension.textPrimary,
+        unselectedItemColor: extension.textTertiary,
+        selectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.3,
+        ),
+        unselectedLabelStyle: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.3,
+        ),
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
+      ),
+      textTheme: TextTheme(
+        displayLarge: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 32,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -1,
+        ),
+        displayMedium: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 28,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.8,
+        ),
+        displaySmall: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 24,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.6,
+        ),
+        headlineMedium: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
+        ),
+        titleLarge: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 18,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.4,
+        ),
+        titleMedium: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          letterSpacing: -0.3,
+        ),
+        bodyLarge: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 16,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.2,
+        ),
+        bodyMedium: TextStyle(
+          color: extension.textPrimary,
+          fontSize: 14,
+          fontWeight: FontWeight.w400,
+          letterSpacing: -0.2,
+        ),
+        bodySmall: TextStyle(
+          color: extension.textPrimary,
           fontSize: 12,
           fontWeight: FontWeight.w400,
           letterSpacing: -0.1,
