@@ -7,28 +7,30 @@ import '../../data/models/character_model.dart';
 class CharacterGridItem extends StatelessWidget {
   final CharacterModel character;
   final VoidCallback? onTap;
+  final bool isPurchasing;
 
   const CharacterGridItem({
     super.key,
     required this.character,
     this.onTap,
+    this.isPurchasing = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
     const goldColor = Color(0xFFD4AF37); // Pro badge color (theme-independent)
-    
+
     return GestureDetector(
-      onTap: onTap,
-      child: Container(
+      onTap: isPurchasing ? null : onTap,
+      child: Opacity(
+        opacity: isPurchasing ? 0.6 : 1.0,
+        child: Container(
         decoration: BoxDecoration(
           color: theme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: character.isOwned
-                ? theme.border
-                : Colors.transparent,
+            color: character.isOwned ? theme.border : Colors.transparent,
             width: 1.5,
           ),
         ),
@@ -46,10 +48,7 @@ class CharacterGridItem extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Center(
-                    child: Text(
-                      '🎮',
-                      style: TextStyle(fontSize: 48),
-                    ),
+                    child: Text('🎮', style: TextStyle(fontSize: 48)),
                   ),
                 ),
                 if (!character.isOwned)
@@ -89,7 +88,7 @@ class CharacterGridItem extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            
+
             // Character Name
             Text(
               character.name,
@@ -103,24 +102,32 @@ class CharacterGridItem extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 4),
-            
-            // Price or Owned
-            Text(
-              character.isOwned
-                  ? 'Sahip'
-                  : '₺${character.price.toStringAsFixed(0)}',
-              style: AppTypography.labelSmall.copyWith(
-                color: character.isOwned
-                    ? theme.textSecondary
-                    : goldColor,
-                fontWeight: AppTypography.medium,
-                fontSize: 10,
+
+            // Price or Owned or Loading
+            if (isPurchasing)
+              SizedBox(
+                width: 12,
+                height: 12,
+                child: CircularProgressIndicator(
+                  strokeWidth: 1.5,
+                  color: goldColor,
+                ),
+              )
+            else
+              Text(
+                character.isOwned
+                    ? 'Sahip'
+                    : '₺${character.price.toStringAsFixed(0)}',
+                style: AppTypography.labelSmall.copyWith(
+                  color: character.isOwned ? theme.textSecondary : goldColor,
+                  fontWeight: AppTypography.medium,
+                  fontSize: 10,
+                ),
               ),
-            ),
           ],
         ),
+      ),
       ),
     );
   }
 }
-

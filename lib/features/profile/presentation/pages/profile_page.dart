@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../auth/presentation/pages/login_page.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/promo_banner.dart';
 import '../widgets/promo_credits_item.dart';
@@ -10,7 +12,7 @@ import '../widgets/quick_access_cards.dart';
 import '../widgets/section_header.dart';
 import '../widgets/settings_list_item.dart';
 import 'user_profile_page.dart';
-import '../../../help/presentation/pages/help_page.dart';
+import 'help_page.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -187,7 +189,7 @@ class ProfilePage extends StatelessWidget {
                   icon: Icons.logout,
                   title: 'Çıkış Yap',
                   onTap: () {
-                    // Show logout confirmation
+                    _showLogoutConfirmation(context);
                   },
                 ),
                 SettingsListItem(
@@ -204,6 +206,70 @@ class ProfilePage extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    final theme = context.appTheme;
+    
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          backgroundColor: theme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Çıkış Yap',
+            style: AppTypography.headlineSmall.copyWith(
+              color: theme.textPrimary,
+              fontWeight: AppTypography.bold,
+            ),
+          ),
+          content: Text(
+            'Hesabınızdan çıkmak istediğinize emin misiniz?',
+            style: AppTypography.bodyMedium.copyWith(
+              color: theme.textSecondary,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                'İptal',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.textSecondary,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(dialogContext).pop();
+                
+                final authProvider = Provider.of<AuthProvider>(context, listen: false);
+                await authProvider.signOut();
+                
+                if (context.mounted) {
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
+                    (route) => false,
+                  );
+                }
+              },
+              child: Text(
+                'Çıkış Yap',
+                style: AppTypography.bodyMedium.copyWith(
+                  color: Colors.red,
+                  fontWeight: AppTypography.semiBold,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

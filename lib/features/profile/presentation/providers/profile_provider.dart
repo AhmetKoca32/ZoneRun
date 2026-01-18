@@ -2,11 +2,13 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../data/services/profile_service.dart';
+import '../../data/services/firestore_user_service.dart';
 import '../../../history/data/services/history_service.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();
   final HistoryService _historyService = HistoryService();
+  final FirestoreUserService _firestoreUserService = FirestoreUserService();
 
   Map<String, dynamic>? _userStats;
   bool _isLoading = true;
@@ -20,6 +22,7 @@ class ProfileProvider extends ChangeNotifier {
   bool _isProMember = false;
   DateTime? _joinDate;
   int? _selectedCharacterId;
+  List<int> _purchasedCharacters = [];
 
   Map<String, dynamic>? get userStats => _userStats;
   bool get isLoading => _isLoading;
@@ -31,16 +34,67 @@ class ProfileProvider extends ChangeNotifier {
   bool get isProMember => _isProMember;
   DateTime? get joinDate => _joinDate;
   int? get selectedCharacterId => _selectedCharacterId;
+  List<int> get purchasedCharacters => _purchasedCharacters;
 
   ProfileProvider() {
     _loadProfileData();
     _loadUserProfile();
     _loadThemePreference();
+    _setupFirestoreListener();
+  }
+  
+  /// Setup Firestore listener for real-time premium status updates
+  void _setupFirestoreListener() {
+    try {
+      _firestoreUserService.getUserProfileStream().listen(
+        (profile) {
+          if (profile != null) {
+            _isProMember = profile.isProMember;
+            _purchasedCharacters = profile.purchasedCharacters;
+            _userName = profile.userName;
+            _avatarIndex = profile.avatarIndex;
+            _avatarUrl = profile.avatarUrl;
+            _selectedCharacterId = profile.selectedCharacterId;
+            _joinDate = profile.joinDate;
+            notifyListeners();
+          }
+        },
+        onError: (error) {
+          if (kDebugMode) {
+            print('Error in Firestore listener: $error');
+          }
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error setting up Firestore listener: $e');
+      }
+    }
   }
   
   Future<void> _loadUserProfile() async {
-    // TODO: Load from database/storage when implemented
-    _joinDate = DateTime.now().subtract(const Duration(days: 30)); // Mock data
+    try {
+      final profile = await _firestoreUserService.getUserProfile();
+      if (profile != null) {
+        _userName = profile.userName;
+        _avatarIndex = profile.avatarIndex;
+        _avatarUrl = profile.avatarUrl;
+        _isProMember = profile.isProMember;
+        _joinDate = profile.joinDate;
+        _selectedCharacterId = profile.selectedCharacterId;
+        _purchasedCharacters = profile.purchasedCharacters;
+        notifyListeners();
+      } else {
+        // No profile found, use defaults
+        _joinDate = DateTime.now();
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading user profile: $e');
+      }
+      // Keep default values on error
+      _joinDate = DateTime.now();
+    }
   }
 
   Future<void> _loadProfileData() async {
@@ -111,33 +165,93 @@ class ProfileProvider extends ChangeNotifier {
   
   // User profile methods
   Future<void> updateUserName(String newName) async {
-    _userName = newName;
-    notifyListeners();
-    // TODO: Save to database/storage
+    try {
+      _userName = newName;
+      notifyListeners();
+      
+      // Save to Firestore
+      await _firestoreUserService.updateUserProfile(userName: newName);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating user name: $e');
+      }
+      // Revert on error
+      await _loadUserProfile();
+      rethrow;
+    }
   }
   
   Future<void> updateAvatar(int avatarIndex) async {
-    _avatarIndex = avatarIndex;
-    notifyListeners();
-    // TODO: Save to database/storage
+    try {
+      _avatarIndex = avatarIndex;
+      notifyListeners();
+      
+      // Save to Firestore (avatarIndex - which avatar is selected)
+      await _firestoreUserService.updateUserProfile(avatarIndex: avatarIndex);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating avatar: $e');
+      }
+      // Revert on error
+      await _loadUserProfile();
+      rethrow;
+    }
   }
   
   Future<void> updateAvatarUrl(String? url) async {
-    _avatarUrl = url;
-    notifyListeners();
-    // TODO: Save to database/storage
+    try {
+      _avatarUrl = url;
+      notifyListeners();
+      
+      // Save to Firestore (optional - local file path reference)
+      await _firestoreUserService.updateUserProfile(avatarUrl: url);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error updating avatar URL: $e');
+      }
+      // Revert on error
+      await _loadUserProfile();
+      rethrow;
+    }
   }
   
   Future<void> selectCharacter(int characterId) async {
-    _selectedCharacterId = characterId;
-    notifyListeners();
-    // TODO: Save to database/storage
+    try {
+      _selectedCharacterId = characterId;
+      notifyListeners();
+      
+      // Save to Firestore
+      await _firestoreUserService.updateUserProfile(selectedCharacterId: characterId);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error selecting character: $e');
+      }
+      // Revert on error
+      await _loadUserProfile();
+      rethrow;
+    }
   }
   
   Future<void> upgradeToPro() async {
-    _isProMember = true;
-    notifyListeners();
-    // TODO: Implement Pro upgrade logic
+    try {
+      _isProMember = true;
+      notifyListeners();
+      
+      // Save to Firestore (CRITICAL - payment made)
+      await _firestoreUserService.updateUserProfile(isProMember: true);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error upgrading to Pro: $e');
+      }
+      // Revert on error
+      await _loadUserProfile();
+      rethrow;
+    }
+  }
+  
+  /// Refresh user profile from Firestore
+  Future<void> refreshUserProfile() async {
+    await _loadUserProfile();
   }
 }
 

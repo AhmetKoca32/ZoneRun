@@ -8,7 +8,7 @@ import '../providers/profile_provider.dart';
 import '../widgets/profile_hero_section.dart';
 import '../widgets/character_selection_section.dart';
 import '../widgets/profile_edit_section.dart';
-import '../../../store/presentation/pages/store_page.dart';
+import 'store_page.dart';
 
 class UserProfilePage extends StatelessWidget {
   const UserProfilePage({super.key});

@@ -346,7 +346,7 @@ class _CharacterSelectionSectionState extends State<CharacterSelectionSection> {
                       return GestureDetector(
                         onTap: isOwned
                             ? () {
-                                widget.onCharacterSelect(index);
+                                // Sadece önizleme göster, seçme
                                 _pageController.animateToPage(
                                   index,
                                   duration: const Duration(milliseconds: 300),

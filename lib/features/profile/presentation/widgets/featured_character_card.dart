@@ -7,42 +7,48 @@ import '../../data/models/character_model.dart';
 class FeaturedCharacterCard extends StatelessWidget {
   final CharacterModel character;
   final VoidCallback? onPurchase;
+  final VoidCallback? onTap;
+  final bool isPurchasing;
 
   const FeaturedCharacterCard({
     super.key,
     required this.character,
     this.onPurchase,
+    this.onTap,
+    this.isPurchasing = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
     const goldColor = Color(0xFFD4AF37); // Pro badge color (theme-independent)
-    
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            theme.surface,
-            theme.surface.withOpacity(0.8),
-            theme.secondaryBackground.withOpacity(0.3),
-          ],
-          stops: const [0.0, 0.5, 1.0],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: theme.primaryBackground.withOpacity(0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.surface,
+              theme.surface.withOpacity(0.8),
+              theme.secondaryBackground.withOpacity(0.3),
+            ],
+            stops: const [0.0, 0.5, 1.0],
           ),
-        ],
-      ),
-      child: Column(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryBackground.withOpacity(0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
         children: [
           // Character Image
           Container(
@@ -52,15 +58,10 @@ class FeaturedCharacterCard extends StatelessWidget {
               color: theme.primaryBackground,
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Center(
-              child: Text(
-                '🎮',
-                style: TextStyle(fontSize: 80),
-              ),
-            ),
+            child: Center(child: Text('🎮', style: TextStyle(fontSize: 80))),
           ),
           const SizedBox(height: 16),
-          
+
           // Character Name
           Text(
             character.name,
@@ -71,16 +72,14 @@ class FeaturedCharacterCard extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          
+
           // Price
           Text(
             character.isOwned
                 ? 'Sahip Olundu'
                 : '₺${character.price.toStringAsFixed(0)}',
             style: AppTypography.titleMedium.copyWith(
-              color: character.isOwned
-                  ? theme.textSecondary
-                  : goldColor,
+              color: character.isOwned ? theme.textSecondary : goldColor,
               fontWeight: AppTypography.semiBold,
               fontSize: 18,
             ),
@@ -97,38 +96,49 @@ class FeaturedCharacterCard extends StatelessWidget {
             ),
           ],
           const SizedBox(height: 16),
-          
+
           // Purchase Button
           if (!character.isOwned)
             GestureDetector(
-              onTap: onPurchase,
+              onTap: isPurchasing ? null : onPurchase,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFD4AF37),
-                      const Color(0xFFB8941F),
-                    ],
-                  ),
+                  gradient: isPurchasing
+                      ? null
+                      : LinearGradient(
+                          colors: [const Color(0xFFD4AF37), const Color(0xFFB8941F)],
+                        ),
+                  color: isPurchasing ? theme.secondaryBackground : null,
                   borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFFD4AF37).withOpacity(0.3),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+                  boxShadow: isPurchasing
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: const Color(0xFFD4AF37).withOpacity(0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                 ),
                 child: Center(
-                  child: Text(
-                    'Satın Al',
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: theme.primaryBackground,
-                      fontWeight: AppTypography.bold,
-                    ),
-                  ),
+                  child: isPurchasing
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.textPrimary,
+                          ),
+                        )
+                      : Text(
+                          'Satın Al',
+                          style: AppTypography.bodyMedium.copyWith(
+                            color: theme.primaryBackground,
+                            fontWeight: AppTypography.bold,
+                          ),
+                        ),
                 ),
               ),
             )
@@ -139,10 +149,7 @@ class FeaturedCharacterCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: theme.secondaryBackground,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: theme.border,
-                  width: 1.5,
-                ),
+                border: Border.all(color: theme.border, width: 1.5),
               ),
               child: Center(
                 child: Row(
@@ -166,8 +173,8 @@ class FeaturedCharacterCard extends StatelessWidget {
               ),
             ),
         ],
+        ),
       ),
     );
   }
 }
-
