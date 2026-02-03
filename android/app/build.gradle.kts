@@ -6,6 +6,29 @@ plugins {
     id("com.google.gms.google-services")
 }
 
+// Load .env file for API keys
+val envFile = file("../../.env")
+val env = mutableMapOf<String, String>()
+if (envFile.exists()) {
+    envFile.readLines().forEach { line ->
+        val trimmedLine = line.trim()
+        if (trimmedLine.isNotBlank() && !trimmedLine.startsWith("#") && trimmedLine.contains("=")) {
+            val parts = trimmedLine.split("=", limit = 2)
+            if (parts.size == 2) {
+                val key = parts[0].trim()
+                val value = parts[1].trim()
+                if (key.isNotEmpty() && value.isNotEmpty()) {
+                    env[key] = value
+                }
+            }
+        }
+    }
+    val apiKey = env["GOOGLE_MAPS_API_KEY"] ?: ""
+    println("✅ Loaded .env file: GOOGLE_MAPS_API_KEY = ${if (apiKey.isNotEmpty()) "***${apiKey.takeLast(4)}" else "NOT FOUND"}")
+} else {
+    println("⚠️ .env file not found at: ${envFile.absolutePath}")
+}
+
 android {
     namespace = "com.example.zone_run"
     compileSdk = flutter.compileSdkVersion
@@ -29,6 +52,9 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        
+        // Google Maps API Key from .env file
+        manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = env["GOOGLE_MAPS_API_KEY"] ?: ""
     }
 
     buildTypes {

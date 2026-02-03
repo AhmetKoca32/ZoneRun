@@ -582,36 +582,40 @@ class _StatCard extends StatelessWidget {
           ),
           if (badgeLabel != null && badgeValue != null) ...[
             const SizedBox(height: 6),
-            // Badge
+            // Badge: label ve değer iki satırda, taşma olmadan tam görünsün
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               decoration: BoxDecoration(
                 color: theme.textTertiary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: RichText(
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: '$badgeLabel: ',
-                      style: AppTypography.labelSmall.copyWith(
-                        color: theme.textSecondary,
-                        fontWeight: AppTypography.medium,
-                        fontSize: 9,
-                      ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    badgeLabel!,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: theme.textSecondary,
+                      fontWeight: AppTypography.medium,
+                      fontSize: 9,
                     ),
-                    TextSpan(
-                      text: badgeValue,
-                      style: AppTypography.labelSmall.copyWith(
-                        color: theme.textPrimary,
-                        fontWeight: AppTypography.semiBold,
-                        fontSize: 9,
-                      ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    badgeValue!,
+                    style: AppTypography.labelSmall.copyWith(
+                      color: theme.textPrimary,
+                      fontWeight: AppTypography.semiBold,
+                      fontSize: 9,
                     ),
-                  ],
-                ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
             ),
           ] else
@@ -683,36 +687,40 @@ class _CalorieStatCard extends StatelessWidget {
             maxLines: 1,
           ),
           const SizedBox(height: 6),
-          // Total calories (badge style)
+          // Badge: Ortalama Alan / Seri kartlarıyla aynı yapı (iki satır, aynı padding)
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
             decoration: BoxDecoration(
               color: theme.textTertiary.withOpacity(0.1),
               borderRadius: BorderRadius.circular(6),
             ),
-            child: RichText(
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-              text: TextSpan(
-                children: [
-                  TextSpan(
-                    text: 'Toplam: ',
-                    style: AppTypography.labelSmall.copyWith(
-                      color: theme.textSecondary,
-                      fontWeight: AppTypography.medium,
-                      fontSize: 9,
-                    ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Toplam',
+                  style: AppTypography.labelSmall.copyWith(
+                    color: theme.textSecondary,
+                    fontWeight: AppTypography.medium,
+                    fontSize: 9,
                   ),
-                  TextSpan(
-                    text: formatCalories(totalCalories),
-                    style: AppTypography.labelSmall.copyWith(
-                      color: theme.textPrimary,
-                      fontWeight: AppTypography.semiBold,
-                      fontSize: 9,
-                    ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  formatCalories(totalCalories),
+                  style: AppTypography.labelSmall.copyWith(
+                    color: theme.textPrimary,
+                    fontWeight: AppTypography.semiBold,
+                    fontSize: 9,
                   ),
-                ],
-              ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],

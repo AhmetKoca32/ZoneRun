@@ -18,5 +18,16 @@ class AppConstants {
   // Polygon Settings
   static const double polygonStrokeWidth = 3.0;
   static const double polygonFillOpacity = 0.2;
+  
+  // GPS Tracking Settings
+  static const double minDistanceForNewPoint =
+      2.0; // meters - minimum distance to add new point (reduced for real-time)
+  static const double autoCompleteDistance =
+      20.0; // meters - distance to start point to suggest completion
+
+  // Profile / Avatars (8 varsayılan; overlay aksesuarlar ileride premiumAvatarStartId 8+)
+  static const int avatarCount = 8;
+  static String avatarAssetPath(int index) =>
+      'assets/avatars/avatar_${index + 1}.png';
 }
 

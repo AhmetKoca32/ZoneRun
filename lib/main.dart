@@ -9,9 +9,10 @@ import 'core/services/firebase_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
+import 'features/history/presentation/providers/history_provider.dart';
 import 'features/home/presentation/providers/home_provider.dart';
+import 'features/map/presentation/providers/map_provider.dart';
 import 'features/profile/presentation/providers/profile_provider.dart';
-import 'features/profile/presentation/providers/store_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,18 +27,14 @@ void main() async {
     try {
       final host = Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
       FirebaseFunctions.instance.useFunctionsEmulator(host, 5001);
-      if (kDebugMode) {
-        print('✅ Configured Firebase Functions Emulator at $host:5001');
-        if (Platform.isAndroid) {
-          print(
-            '   (Android emulator: 10.0.2.2 maps to host machine\'s 127.0.0.1)',
-          );
-        }
+      print('✅ Configured Firebase Functions Emulator at $host:5001');
+      if (Platform.isAndroid) {
+        print(
+          '   (Android emulator: 10.0.2.2 maps to host machine\'s 127.0.0.1)',
+        );
       }
     } catch (e) {
-      if (kDebugMode) {
-        print('⚠️ Could not configure Functions Emulator: $e');
-      }
+      print('⚠️ Could not configure Functions Emulator: $e');
     }
   }
   
@@ -54,7 +51,8 @@ class ZoneRunApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => HomeProvider()),
         ChangeNotifierProvider(create: (_) => ProfileProvider()),
-        ChangeNotifierProvider(create: (_) => StoreProvider()),
+        ChangeNotifierProvider(create: (_) => MapProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
       ],
       child: Consumer<ProfileProvider>(
         builder: (context, profileProvider, child) {

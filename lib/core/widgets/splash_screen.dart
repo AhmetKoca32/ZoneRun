@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/profile/presentation/providers/profile_provider.dart';
 import '../navigation/main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -34,6 +35,16 @@ class _SplashScreenState extends State<SplashScreen> {
     if (authProvider.isLoading) {
       // If still loading, wait for auth state to be determined
       await _waitForAuthState();
+    }
+
+    if (!mounted) return;
+
+    // If user is logged in, wait for profile (including premium status) to load
+    if (authProvider.isLoggedIn) {
+      final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+      if (profileProvider.isProfileLoading) {
+        await _waitForProfileLoad();
+      }
     }
 
     if (!mounted) return;
@@ -76,6 +87,27 @@ class _SplashScreenState extends State<SplashScreen> {
     // If still loading after max attempts, proceed anyway
     // This ensures the app doesn't get stuck
     if (authProvider.isLoading) {
+      // Force stop loading after timeout
+      await Future.delayed(const Duration(milliseconds: 200));
+    }
+  }
+
+  Future<void> _waitForProfileLoad() async {
+    final profileProvider = Provider.of<ProfileProvider>(context, listen: false);
+
+    // Wait until profile (including premium status) is loaded
+    int maxAttempts = 50; // 5 seconds max wait
+    int attempts = 0;
+
+    while (profileProvider.isProfileLoading && attempts < maxAttempts) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      attempts++;
+      if (!mounted) return;
+    }
+
+    // If still loading after max attempts, proceed anyway
+    // This ensures the app doesn't get stuck
+    if (profileProvider.isProfileLoading) {
       // Force stop loading after timeout
       await Future.delayed(const Duration(milliseconds: 200));
     }

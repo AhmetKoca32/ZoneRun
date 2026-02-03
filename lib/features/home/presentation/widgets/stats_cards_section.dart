@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
+import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../providers/home_provider.dart';
 
@@ -18,7 +19,11 @@ class StatsCardsSection extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: ElevatedButton(
             onPressed: () {
-              // Navigate to map or start tracking
+              // Navigate to map page (index 1)
+              final mainNav = MainNavigationInherited.of(context);
+              if (mainNav != null) {
+                mainNav.switchToTab(1); // Switch to map page
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: theme.accent,

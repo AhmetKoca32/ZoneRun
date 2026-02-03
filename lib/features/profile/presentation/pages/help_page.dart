@@ -68,7 +68,7 @@ class _HelpPageState extends State<HelpPage> {
                   color: theme.textPrimary,
                 ),
               ),
-              backgroundColor: Colors.red,
+              backgroundColor: theme.secondaryBackground,
             ),
           );
         }
@@ -84,7 +84,7 @@ class _HelpPageState extends State<HelpPage> {
                 color: theme.textPrimary,
               ),
             ),
-            backgroundColor: Colors.red,
+            backgroundColor: theme.secondaryBackground,
           ),
         );
       }
@@ -162,7 +162,7 @@ class _HelpPageState extends State<HelpPage> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
+                      color: theme.textPrimary.withOpacity(0.2),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),

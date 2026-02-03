@@ -83,9 +83,13 @@ class FirestoreUserService {
     String? userName,
     String? avatarUrl,
     int? avatarIndex,
-    bool? isProMember,
     int? selectedCharacterId,
     List<int>? purchasedCharacters,
+    String? selectedTitleId,
+    int? selectedBannerId,
+    List<String>? unlockedTitleIds,
+    List<int>? unlockedAvatarIds,
+    List<int>? unlockedBannerIds,
   }) async {
     if (_firestore == null) {
       throw Exception('Firestore not initialized');
@@ -99,16 +103,24 @@ class FirestoreUserService {
       if (userName != null) updates['userName'] = userName;
       if (avatarUrl != null) updates['avatarUrl'] = avatarUrl;
       if (avatarIndex != null) updates['avatarIndex'] = avatarIndex;
-      if (isProMember != null) updates['isProMember'] = isProMember;
       if (selectedCharacterId != null) updates['selectedCharacterId'] = selectedCharacterId;
       if (purchasedCharacters != null) updates['purchasedCharacters'] = purchasedCharacters;
+      if (selectedTitleId != null) updates['selectedTitleId'] = selectedTitleId;
+      if (selectedBannerId != null)
+        updates['selectedBannerId'] = selectedBannerId;
+      if (unlockedTitleIds != null)
+        updates['unlockedTitleIds'] = unlockedTitleIds;
+      if (unlockedAvatarIds != null)
+        updates['unlockedAvatarIds'] = unlockedAvatarIds;
+      if (unlockedBannerIds != null)
+        updates['unlockedBannerIds'] = unlockedBannerIds;
 
       await _firestore!.collection('users').doc(uid).update(updates);
     } catch (e) {
       throw Exception('Error updating user profile: $e');
     }
   }
-  
+
   /// Add character to purchased characters list
   Future<void> addPurchasedCharacter(int characterId) async {
     if (_firestore == null) {
@@ -129,6 +141,30 @@ class FirestoreUserService {
     } catch (e) {
       throw Exception('Error adding purchased character: $e');
     }
+  }
+
+  /// Add unlocked title (sıfat) when task is completed
+  Future<void> addUnlockedTitle(String titleId) async {
+    final profile = await getUserProfile();
+    if (profile == null || profile.unlockedTitleIds.contains(titleId)) return;
+    final updated = List<String>.from(profile.unlockedTitleIds)..add(titleId);
+    await updateUserProfile(unlockedTitleIds: updated);
+  }
+
+  /// Add unlocked avatar ID (premium) when task is completed
+  Future<void> addUnlockedAvatar(int avatarId) async {
+    final profile = await getUserProfile();
+    if (profile == null || profile.unlockedAvatarIds.contains(avatarId)) return;
+    final updated = List<int>.from(profile.unlockedAvatarIds)..add(avatarId);
+    await updateUserProfile(unlockedAvatarIds: updated);
+  }
+
+  /// Add unlocked banner ID when task is completed
+  Future<void> addUnlockedBanner(int bannerId) async {
+    final profile = await getUserProfile();
+    if (profile == null || profile.unlockedBannerIds.contains(bannerId)) return;
+    final updated = List<int>.from(profile.unlockedBannerIds)..add(bannerId);
+    await updateUserProfile(unlockedBannerIds: updated);
   }
 
   // ==================== User Settings Operations ====================
@@ -222,7 +258,6 @@ class FirestoreUserService {
         userId: uid,
         userName: userName,
         avatarIndex: avatarIndex,
-        isProMember: false,
         joinDate: now,
       );
       await saveUserProfile(profile);

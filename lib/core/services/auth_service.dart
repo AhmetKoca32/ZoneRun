@@ -57,13 +57,7 @@ class AuthService {
       // Update display name
       await userCredential.user?.updateDisplayName(userName);
 
-      // Create user profile in Firestore
-      if (userCredential.user != null && _firestoreUserService != null) {
-        await _firestoreUserService!.createUserProfile(
-          userName: userName,
-          avatarIndex: 0,
-        );
-      }
+      // Profil yerelde tutulur; ilk girişte ProfileProvider varsayılan oluşturur
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
@@ -123,30 +117,7 @@ class AuthService {
       // Sign in to Firebase with the Google credential
       final userCredential = await _auth!.signInWithCredential(credential);
 
-      // Create or update user profile in Firestore
-      if (userCredential.user != null && _firestoreUserService != null) {
-        final existingProfile = await _firestoreUserService!.getUserProfile(
-          userCredential.user!.uid,
-        );
-        if (existingProfile == null) {
-          // Create new profile with Google display name
-          await _firestoreUserService!.createUserProfile(
-            userName: userCredential.user!.displayName ?? 'Kullanıcı',
-            avatarIndex: 0,
-          );
-        } else {
-          // Update existing profile if name is missing or default
-          final googleDisplayName = userCredential.user!.displayName;
-          if (googleDisplayName != null && 
-              (existingProfile.userName.isEmpty || 
-               existingProfile.userName == 'Kullanıcı' ||
-               existingProfile.userName == 'Ahmet Koca')) {
-            await _firestoreUserService!.updateUserProfile(
-              userName: googleDisplayName,
-            );
-          }
-        }
-      }
+      // Profil yerelde tutulur; ilk girişte ProfileProvider varsayılan oluşturur (displayName ile)
 
       return userCredential;
     } on FirebaseAuthException catch (e) {

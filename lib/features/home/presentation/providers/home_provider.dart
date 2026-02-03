@@ -23,31 +23,38 @@ class HomeProvider extends ChangeNotifier {
     _loadStats();
   }
 
+  /// Refresh stats from SQLite (e.g. after completing a polygon or returning to home)
+  Future<void> refreshStats() async {
+    await _loadStats();
+  }
+
   Future<void> _loadStats() async {
     _isLoading = true;
     notifyListeners();
 
     try {
-      // Mock data for development
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      final totalDistance = 18500.0; // meters -> 18.50 km
-      final totalDistanceKm = totalDistance / 1000.0;
-      final totalCalories = (totalDistanceKm * 55).round(); // 55 calories per km
-
-      final todayDistance = 3200.0; // meters -> 3.20 km
-      final todayDistanceKm = todayDistance / 1000.0;
-      final todayCalories = (todayDistanceKm * 55).round(); // 55 calories per km
-
+      final totalArea = await _historyService.getTotalAreaConquered();
+      final polygonCount = await _historyService.getPolygonCount();
+      final activePolygons = await _historyService.getActivePolygons();
+      final totalDistance = await _historyService.getTotalDistance();
+      final todayDistance = await _historyService.getTodayDistance();
       final streak = await _historyService.getCurrentStreak();
       final maxArea = await _historyService.getMaxArea();
       final maxStreak = await _historyService.getMaxStreak();
 
+      final totalDistanceKm = totalDistance / 1000.0;
+      final totalCalories = (totalDistanceKm * 55).round();
+      final todayDistanceKm = todayDistance / 1000.0;
+      final todayCalories = (todayDistanceKm * 55).round();
+
+      final averageArea =
+          polygonCount > 0 ? totalArea / polygonCount : 0.0;
+
       _stats = {
-        'totalArea': 12500000.0, // m² -> 12.50 km²
-        'polygonCount': 8,
-        'activePolygonCount': 3,
-        'averageArea': 1560000.0, // m² -> 1.56 km²
+        'totalArea': totalArea,
+        'polygonCount': polygonCount,
+        'activePolygonCount': activePolygons.length,
+        'averageArea': averageArea,
         'totalDistance': totalDistance,
         'todayDistance': todayDistance,
         'totalCalories': totalCalories,
@@ -88,11 +95,14 @@ class HomeProvider extends ChangeNotifier {
   }
 
   String formatArea(double areaInSquareMeters) {
-    if (areaInSquareMeters < 1000) {
+    if (areaInSquareMeters < 10000) {
+      // 1 hektardan az → m²
       return '${areaInSquareMeters.toStringAsFixed(0)} m²';
     } else if (areaInSquareMeters < 1000000) {
-      return '${(areaInSquareMeters / 1000).toStringAsFixed(2)} km²';
+      // 1 km²'den az → hektar (ha), 1 ha = 10.000 m²
+      return '${(areaInSquareMeters / 10000).toStringAsFixed(2)} ha';
     } else {
+      // 1 km² ve üzeri → km², 1 km² = 1.000.000 m²
       return '${(areaInSquareMeters / 1000000).toStringAsFixed(2)} km²';
     }
   }

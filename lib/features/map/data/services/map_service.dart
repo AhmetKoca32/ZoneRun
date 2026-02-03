@@ -13,29 +13,41 @@ class MapService {
     return _locationService.getLocationStream();
   }
 
-  /// Calculate polygon area using Shoelace formula
+  /// Calculate polygon area using Shoelace formula with proper coordinate conversion
+  /// Uses average point as reference for better accuracy
   double calculatePolygonArea(List<LatLng> points) {
     if (points.length < 3) return 0.0;
 
-    double area = 0.0;
-    for (int i = 0; i < points.length; i++) {
-      final j = (i + 1) % points.length;
-      area += points[i].longitude * points[j].latitude;
-      area -= points[j].longitude * points[i].latitude;
-    }
-    area = area.abs() / 2.0;
-
-    // Convert to square meters (approximate)
-    // 1 degree latitude ≈ 111 km
-    // 1 degree longitude ≈ 111 km * cos(latitude)
+    // Calculate average latitude for longitude conversion
     final avgLat =
         points.map((p) => p.latitude).reduce((a, b) => a + b) / points.length;
-    final latMeters = 111000.0; // meters per degree latitude
-    final lonMeters =
-        111000.0 *
-        math.cos(avgLat * math.pi / 180.0); // meters per degree longitude
-
-    return area * latMeters * lonMeters;
+    final avgLon =
+        points.map((p) => p.longitude).reduce((a, b) => a + b) / points.length;
+    
+    // Convert lat/lon to meters using proper projection
+    // 1 degree latitude ≈ 111,320 meters (constant)
+    // 1 degree longitude ≈ 111,320 * cos(latitude) meters (varies by latitude)
+    const double latMetersPerDegree = 111320.0;
+    final lonMetersPerDegree = 111320.0 * math.cos(avgLat * math.pi / 180.0);
+    
+    // Convert all points to meters relative to average point
+    // This gives better accuracy than using first point
+    final pointsInMeters = points.map((p) {
+      return {
+        'x': (p.longitude - avgLon) * lonMetersPerDegree,
+        'y': (p.latitude - avgLat) * latMetersPerDegree,
+      };
+    }).toList();
+    
+    // Apply Shoelace formula on meter coordinates
+    double area = 0.0;
+    for (int i = 0; i < pointsInMeters.length; i++) {
+      final j = (i + 1) % pointsInMeters.length;
+      area += pointsInMeters[i]['x']! * pointsInMeters[j]['y']!;
+      area -= pointsInMeters[j]['x']! * pointsInMeters[i]['y']!;
+    }
+    
+    return area.abs() / 2.0;
   }
 
   /// Save polygon to database
@@ -71,5 +83,15 @@ class MapService {
   /// Check location permissions
   Future<bool> checkLocationPermission() async {
     return await _locationService.checkAndRequestPermission();
+  }
+
+  /// Get all completed polygons
+  Future<List<PolygonModel>> getCompletedPolygons() async {
+    return await _databaseService.getCompletedPolygons();
+  }
+
+  /// Delete a polygon
+  Future<void> deletePolygon(int id) async {
+    await _databaseService.deletePolygon(id);
   }
 }

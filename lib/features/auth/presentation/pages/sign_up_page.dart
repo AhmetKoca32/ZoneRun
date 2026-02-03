@@ -50,10 +50,15 @@ class _SignUpPageState extends State<SignUpPage> {
         (route) => false,
       );
     } else if (mounted && authProvider.errorMessage != null) {
+      final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: Colors.red,
+          content: Text(
+            authProvider.errorMessage!,
+            style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
+          ),
+          backgroundColor: theme.secondaryBackground,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -69,10 +74,15 @@ class _SignUpPageState extends State<SignUpPage> {
         (route) => false,
       );
     } else if (mounted && authProvider.errorMessage != null) {
+      final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(authProvider.errorMessage!),
-          backgroundColor: Colors.red,
+          content: Text(
+            authProvider.errorMessage!,
+            style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
+          ),
+          backgroundColor: theme.secondaryBackground,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -84,7 +94,7 @@ class _SignUpPageState extends State<SignUpPage> {
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: theme.primaryBackground,
       body: Container(
         width: double.infinity,
         height: double.infinity,

@@ -4,7 +4,6 @@ import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 
 class QuickAccessCards extends StatelessWidget {
-  final VoidCallback? onUserProfileTap;
   final VoidCallback? onHelpCenterTap;
   final VoidCallback? onStatisticsTap;
   final VoidCallback? onThemeTap;
@@ -12,7 +11,6 @@ class QuickAccessCards extends StatelessWidget {
 
   const QuickAccessCards({
     super.key,
-    this.onUserProfileTap,
     this.onHelpCenterTap,
     this.onStatisticsTap,
     this.onThemeTap,
@@ -33,11 +31,6 @@ class QuickAccessCards extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _QuickAccessItem(
-            icon: Icons.person_outline,
-            label: 'Kullanıcı Profili',
-            onTap: onUserProfileTap,
-          ),
           _QuickAccessItem(
             icon: Icons.headset_mic_outlined,
             label: 'Yardım',

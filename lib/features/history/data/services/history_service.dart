@@ -1,5 +1,6 @@
 import '../../../../core/models/polygon_model.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../../core/utils/geometry_utils.dart';
 
 class HistoryService {
   final DatabaseService _databaseService = DatabaseService();
@@ -45,6 +46,30 @@ class HistoryService {
     return polygons.length;
   }
 
+  /// Get total distance (sum of perimeters of all completed polygons) in meters
+  Future<double> getTotalDistance() async {
+    final polygons = await getHistory();
+    double total = 0.0;
+    for (final polygon in polygons) {
+      if (polygon.points.length >= 2) {
+        total += polygonPerimeterMeters(polygon.points);
+      }
+    }
+    return total;
+  }
+
+  /// Get today's distance (sum of perimeters of polygons completed today) in meters
+  Future<double> getTodayDistance() async {
+    final polygons = await getTodayPolygons();
+    double total = 0.0;
+    for (final polygon in polygons) {
+      if (polygon.points.length >= 2) {
+        total += polygonPerimeterMeters(polygon.points);
+      }
+    }
+    return total;
+  }
+
   /// Get polygons completed today
   Future<List<PolygonModel>> getTodayPolygons() async {
     final allPolygons = await getHistory();
@@ -55,6 +80,56 @@ class HistoryService {
       if (polygon.completedAt == null) return false;
       return polygon.completedAt!.isAfter(todayStart);
     }).toList();
+  }
+
+  /// Get polygons completed this week (Monday start)
+  Future<List<PolygonModel>> getThisWeekPolygons() async {
+    final allPolygons = await getHistory();
+    final now = DateTime.now();
+    final weekday = now.weekday;
+    final mondayOffset = weekday - DateTime.monday;
+    final weekStart = DateTime(now.year, now.month, now.day).subtract(Duration(days: mondayOffset));
+
+    return allPolygons.where((polygon) {
+      if (polygon.completedAt == null) return false;
+      return !polygon.completedAt!.isBefore(weekStart);
+    }).toList();
+  }
+
+  /// Get polygons completed this month
+  Future<List<PolygonModel>> getThisMonthPolygons() async {
+    final allPolygons = await getHistory();
+    final now = DateTime.now();
+    final monthStart = DateTime(now.year, now.month, 1);
+
+    return allPolygons.where((polygon) {
+      if (polygon.completedAt == null) return false;
+      return !polygon.completedAt!.isBefore(monthStart);
+    }).toList();
+  }
+
+  /// Get this week's total distance in meters
+  Future<double> getThisWeekDistance() async {
+    final polygons = await getThisWeekPolygons();
+    double total = 0.0;
+    for (final polygon in polygons) {
+      if (polygon.points.length >= 2) {
+        total += polygonPerimeterMeters(polygon.points);
+      }
+    }
+    return total;
+  }
+
+  /// Get this month's total distance in meters
+  Future<double> getThisMonthDistance() async {
+    final polygons = await getThisMonthPolygons();
+    double total = 0.0;
+    for (final polygon in polygons) {
+      if (polygon.points.length >= 2) {
+        total += polygonPerimeterMeters(polygon.points);
+      }
+    }
+    return total;
   }
 
   /// Calculate current streak (consecutive days with activity)
