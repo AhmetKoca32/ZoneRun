@@ -27,21 +27,21 @@ class HistoryProvider extends ChangeNotifier {
       _polygons = await _historyService.getHistory();
       _isLoading = false;
       notifyListeners();
-    } catch (e) {
-      _errorMessage = 'Geçmiş yüklenemedi: $e';
+    } catch (_) {
+      _errorMessage = 'Geçmiş yüklenemedi. Lütfen tekrar deneyin.';
       _isLoading = false;
       notifyListeners();
     }
   }
-  
+
   Future<bool> deletePolygon(int id) async {
     try {
       await _historyService.deletePolygon(id);
       // Reload history after deletion
       await loadHistory();
       return true;
-    } catch (e) {
-      _errorMessage = 'Polygon silinemedi: $e';
+    } catch (_) {
+      _errorMessage = 'Kayıt silinemedi. Lütfen tekrar deneyin.';
       notifyListeners();
       return false;
     }

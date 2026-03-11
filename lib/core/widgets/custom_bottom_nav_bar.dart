@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../extensions/theme_extension_helper.dart';
+import '../../l10n/app_localizations.dart';
 
 class CustomBottomNavBar extends StatelessWidget {
   final int currentIndex;
@@ -15,7 +16,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       margin: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 26),
       decoration: BoxDecoration(
@@ -39,7 +40,7 @@ class CustomBottomNavBar extends StatelessWidget {
             context: context,
             icon: Icons.home_outlined,
             activeIcon: Icons.home,
-            label: 'Ana Sayfa',
+            label: l10n.navHome,
             index: 0,
             isActive: currentIndex == 0,
           ),
@@ -47,7 +48,7 @@ class CustomBottomNavBar extends StatelessWidget {
             context: context,
             icon: Icons.map_outlined,
             activeIcon: Icons.map,
-            label: 'Harita',
+            label: l10n.navMap,
             index: 1,
             isActive: currentIndex == 1,
           ),
@@ -55,7 +56,7 @@ class CustomBottomNavBar extends StatelessWidget {
             context: context,
             icon: Icons.history_outlined,
             activeIcon: Icons.history,
-            label: 'Geçmiş',
+            label: l10n.navHistory,
             index: 2,
             isActive: currentIndex == 2,
           ),

@@ -31,7 +31,6 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    
     return MainNavigationInherited(
       switchToTab: switchToTab,
       child: Scaffold(

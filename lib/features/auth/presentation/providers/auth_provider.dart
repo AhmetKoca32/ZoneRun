@@ -9,12 +9,13 @@ class AuthProvider extends ChangeNotifier {
 
   User? _user;
   bool _isLoading = true;
-  String? _errorMessage;
+  String? _errorCode;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _user != null;
-  String? get errorMessage => _errorMessage;
+  /// Localize with AuthL10n.messageFor(context, errorCode).
+  String? get errorCode => _errorCode;
 
   AuthProvider() {
     _init();
@@ -38,12 +39,11 @@ class AuthProvider extends ChangeNotifier {
       _authService.authStateChanges.listen((User? user) {
         _user = user;
         _isLoading = false;
-        _errorMessage = null;
+        _errorCode = null;
         notifyListeners();
       }, onError: (error) {
-        // If auth state stream fails, stop loading
         _isLoading = false;
-        _errorMessage = 'Auth state check failed';
+        _errorCode = 'authErrorAuthStateFailed';
         notifyListeners();
       });
       
@@ -65,7 +65,7 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     try {
       _isLoading = true;
-      _errorMessage = null;
+      _errorCode = null;
       notifyListeners();
 
       await _authService.signUpWithEmail(
@@ -74,12 +74,14 @@ class AuthProvider extends ChangeNotifier {
         userName: userName,
       );
 
+      _user = _authService.currentUser;
       _isLoading = false;
+      _errorCode = null;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
       return false;
     }
@@ -92,7 +94,7 @@ class AuthProvider extends ChangeNotifier {
   }) async {
     try {
       _isLoading = true;
-      _errorMessage = null;
+      _errorCode = null;
       notifyListeners();
 
       await _authService.signInWithEmail(
@@ -100,12 +102,14 @@ class AuthProvider extends ChangeNotifier {
         password: password,
       );
 
+      _user = _authService.currentUser;
       _isLoading = false;
+      _errorCode = null;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
       return false;
     }
@@ -115,17 +119,19 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signInWithGoogle() async {
     try {
       _isLoading = true;
-      _errorMessage = null;
+      _errorCode = null;
       notifyListeners();
 
       await _authService.signInWithGoogle();
 
+      _user = _authService.currentUser;
       _isLoading = false;
+      _errorCode = null;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
       return false;
     }
@@ -135,7 +141,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> sendPasswordResetEmail(String email) async {
     try {
       _isLoading = true;
-      _errorMessage = null;
+      _errorCode = null;
       notifyListeners();
 
       await _authService.sendPasswordResetEmail(email);
@@ -145,7 +151,7 @@ class AuthProvider extends ChangeNotifier {
       return true;
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
       return false;
     }
@@ -155,7 +161,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     try {
       _isLoading = true;
-      _errorMessage = null;
+      _errorCode = null;
       notifyListeners();
 
       await _authService.signOut();
@@ -165,14 +171,34 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
     } catch (e) {
       _isLoading = false;
-      _errorMessage = e.toString().replaceAll('Exception: ', '');
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
+    }
+  }
+
+  /// Hesabı kalıcı olarak sil
+  Future<void> deleteAccount() async {
+    try {
+      _isLoading = true;
+      _errorCode = null;
+      notifyListeners();
+
+      await _authService.deleteAccount();
+
+      _user = null;
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
+      notifyListeners();
+      rethrow;
     }
   }
 
   /// Clear error message
   void clearError() {
-    _errorMessage = null;
+    _errorCode = null;
     notifyListeners();
   }
 }

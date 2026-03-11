@@ -1,8 +1,10 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/banner_constants.dart';
 import '../../../../core/constants/overlay_constants.dart';
 import '../../../../core/constants/reward_constants.dart';
@@ -17,6 +19,8 @@ class ProfileHeroSection extends StatelessWidget {
   final int selectedBannerId;
   final String? selectedTitleLabel;
   final List<int> selectedAccessoryIds;
+  /// Banner'ın sağındaki paylaş butonuna tıklanınca çağrılır (edit açılmaz).
+  final VoidCallback? onShareTap;
 
   const ProfileHeroSection({
     super.key,
@@ -27,6 +31,7 @@ class ProfileHeroSection extends StatelessWidget {
     this.selectedBannerId = 0,
     this.selectedTitleLabel,
     this.selectedAccessoryIds = const [],
+    this.onShareTap,
   });
 
   @override
@@ -83,6 +88,23 @@ class ProfileHeroSection extends StatelessWidget {
                         ],
                         stops: const [0.0, 0.4, 1.0],
                       ),
+                    ),
+                  ),
+                ),
+              ),
+            if (onShareTap != null)
+              Positioned(
+                top: 12,
+                right: 12,
+                child: Material(
+                  color: Colors.black26,
+                  borderRadius: BorderRadius.circular(20),
+                  child: InkWell(
+                    onTap: onShareTap,
+                    borderRadius: BorderRadius.circular(20),
+                    child: const Padding(
+                      padding: EdgeInsets.all(10),
+                      child: Icon(Icons.share, color: Colors.white, size: 22),
                     ),
                   ),
                 ),
@@ -158,7 +180,7 @@ class ProfileHeroSection extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          'Üyelik: ${_formatDate(joinDate!)}',
+                          '${AppLocalizations.of(context)!.profileMembershipLabel}: ${DateFormat.yMMMd(Localizations.localeOf(context).toString()).format(joinDate!)}',
                           style: AppTypography.bodySmall.copyWith(
                                   color: theme.textSecondary,
                             fontWeight: AppTypography.light,
@@ -305,22 +327,5 @@ class ProfileHeroSection extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) {
-    final months = [
-      'Oca',
-      'Şub',
-      'Mar',
-      'Nis',
-      'May',
-      'Haz',
-      'Tem',
-      'Ağu',
-      'Eyl',
-      'Eki',
-      'Kas',
-      'Ara'
-    ];
-    return '${date.day} ${months[date.month - 1]} ${date.year}';
-  }
 }
 

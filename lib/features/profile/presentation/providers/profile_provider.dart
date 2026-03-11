@@ -1,7 +1,8 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart' show Locale;
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../../core/constants/reward_constants.dart';
@@ -9,6 +10,7 @@ import '../../../../core/services/firebase_service.dart';
 import '../../../history/data/services/history_service.dart';
 import '../../data/services/firestore_user_service.dart';
 import '../../data/services/profile_service.dart';
+import '../../data/services/tasks_service.dart';
 
 class ProfileProvider extends ChangeNotifier {
   final ProfileService _profileService = ProfileService();
@@ -19,7 +21,8 @@ class ProfileProvider extends ChangeNotifier {
   bool _isLoading = true;
   int _streak = 0;
   bool _isDarkTheme = true; // Default dark theme
-  
+  String _localeCode = 'tr';
+
   // User profile data
   String _userName = 'Ahmet Koca';
   String? _avatarUrl;
@@ -62,19 +65,14 @@ class ProfileProvider extends ChangeNotifier {
       List.unmodifiable(_selectedAccessoryIds);
   List<int> get unlockedAccessoryIds => _unlockedAccessoryIds;
   double? get weightKg => _weightKg;
+  String get localeCode => _localeCode;
+  Locale get appLocale => Locale(_localeCode);
 
   ProfileProvider() {
     _loadProfileData();
     _loadThemePreference();
     _setupAuthStateListener();
-
-    // If user is already authenticated (e.g., app restart), load profile immediately
-    if (FirebaseService.isLoggedIn) {
-      if (kDebugMode) {
-        print('✅ User already authenticated, loading profile immediately...');
-      }
-      _loadLocalProfile();
-    }
+    _loadLocalProfile();
   }
 
   /// Setup listener for Firebase Auth state changes
@@ -90,11 +88,12 @@ class ProfileProvider extends ChangeNotifier {
             _loadLocalProfile();
           } else {
             // User logged out - clear profile data and cancel listener
-            if (kDebugMode) {
-              print('⚠️ User logged out, clearing profile...');
-            }
+          if (kDebugMode) {
+            print('⚠️ User logged out, switching to guest profile...');
+          }
             _clearUserProfile();
             _cancelFirestoreListener();
+            _loadLocalProfile();
           }
         },
         onError: (error) {
@@ -136,61 +135,74 @@ class ProfileProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Load user profile from local storage (SharedPreferences). Firestore kullanılmıyor.
+  /// Load user profile from local storage (SharedPreferences). Giriş yoksa guest key ile.
   Future<void> _loadLocalProfile() async {
-    if (!FirebaseService.isLoggedIn) {
-      if (kDebugMode) print('⚠️ Cannot load profile: User not authenticated');
-      return;
-    }
-
     _isProfileLoading = true;
     notifyListeners();
 
     try {
-      final uid = FirebaseService.auth.currentUser?.uid;
-      if (uid == null) return;
+      final key = _getProfileKey();
       final prefs = await SharedPreferences.getInstance();
       final p = _prefsKeyProfile;
 
-      final userName = prefs.getString('${p}userName_$uid');
+      final userName = prefs.getString('${p}userName_$key');
       if (userName != null && userName.isNotEmpty) {
         _userName = userName;
-        _avatarIndex = prefs.getInt('${p}avatarIndex_$uid') ?? 0;
-        _avatarUrl = prefs.getString('${p}avatarUrl_$uid');
-        final joinStr = prefs.getString('${p}joinDate_$uid');
+        _avatarIndex = prefs.getInt('${p}avatarIndex_$key') ?? 0;
+        _avatarUrl = prefs.getString('${p}avatarUrl_$key');
+        final joinStr = prefs.getString('${p}joinDate_$key');
         _joinDate = joinStr != null
             ? DateTime.tryParse(joinStr)
             : DateTime.now();
-        _selectedTitleId = prefs.getString('${p}selectedTitleId_$uid');
+        _selectedTitleId = prefs.getString('${p}selectedTitleId_$key');
         if (_selectedTitleId != null && _selectedTitleId!.isEmpty)
           _selectedTitleId = null;
-        _selectedBannerId = prefs.getInt('${p}selectedBannerId_$uid') ?? 0;
+        _selectedBannerId = prefs.getInt('${p}selectedBannerId_$key') ?? 0;
         _unlockedTitleIds =
-            prefs.getStringList('${p}unlockedTitleIds_$uid') ?? [];
+            prefs.getStringList('${p}unlockedTitleIds_$key') ?? [];
         _unlockedAvatarIds =
-            (prefs.getStringList('${p}unlockedAvatarIds_$uid') ?? [])
+            (prefs.getStringList('${p}unlockedAvatarIds_$key') ?? [])
                 .map((e) => int.tryParse(e) ?? 0)
                 .where((e) => e > 0)
                 .toList();
         _unlockedBannerIds =
-            (prefs.getStringList('${p}unlockedBannerIds_$uid') ?? [])
+            (prefs.getStringList('${p}unlockedBannerIds_$key') ?? [])
                 .map((e) => int.tryParse(e) ?? 0)
                 .where((e) => e >= 0)
                 .toList();
-        _migrateRewardsLockedIfNeeded(prefs, uid);
-        if (kDebugMode) {
-          _unlockedBannerIds = List.generate(
-            RewardConstants.rewardBannerCount,
-            (i) => 1 + i,
-          );
-          await _saveLocalProfile();
-          print('✅ Debug: tüm bannerlar açıldı');
-        }
-        if (kDebugMode) print('✅ Profile loaded from local');
+        _migrateRewardsLockedIfNeeded(prefs, key);
+        if (kDebugMode) print('✅ Profile loaded from local (key: $key)');
       } else {
-        // İlk giriş: varsayılan profil oluştur
-        _userName =
-            FirebaseService.auth.currentUser?.displayName ?? 'Kullanıcı';
+        // İlk kullanım (misafir veya yeni hesap): varsayılan profil
+        if (FirebaseService.isLoggedIn) {
+          User? user = FirebaseService.auth.currentUser;
+          String? name = user?.displayName;
+          // Kayıt sonrası auth state hemen tetiklenir, updateDisplayName henüz çalışmamış olabilir; kısa bekle + reload
+          if ((name == null || name.isEmpty) && user != null) {
+            try {
+              await Future.delayed(const Duration(milliseconds: 400));
+              await user.reload();
+              user = FirebaseService.auth.currentUser;
+              name = user?.displayName;
+            } catch (_) {}
+          }
+          if (name != null && name.isNotEmpty) {
+            _userName = name;
+          } else {
+            // E-posta ile girişte displayName hiç set edilmemişse e-postanın @ öncesini kullan
+            final email = user?.email;
+            if (email != null && email.isNotEmpty && email.contains('@')) {
+              final part = email.substring(0, email.indexOf('@'));
+              _userName = part.isEmpty
+                  ? 'Kullanıcı'
+                  : part[0].toUpperCase() + part.substring(1).toLowerCase();
+            } else {
+              _userName = 'Kullanıcı';
+            }
+          }
+        } else {
+          _userName = 'Misafir';
+        }
         _avatarIndex = 0;
         _avatarUrl = null;
         _joinDate = DateTime.now();
@@ -200,13 +212,7 @@ class ProfileProvider extends ChangeNotifier {
         _unlockedAvatarIds = [];
         _unlockedBannerIds = [];
         await _saveLocalProfile();
-        // Tüm ödül banner'ları açık (eklenen görseller kullanılabilsin)
-        _unlockedBannerIds = List.generate(
-          RewardConstants.rewardBannerCount,
-          (i) => 1 + i,
-        );
-        await _saveLocalProfile();
-        if (kDebugMode) print('✅ Default profile created (local)');
+        if (kDebugMode) print('✅ Default profile created (key: $key)');
       }
     } catch (e) {
       if (kDebugMode) print('❌ Error loading profile: $e');
@@ -220,26 +226,25 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<void> _saveLocalProfile() async {
-    final uid = FirebaseService.auth.currentUser?.uid;
-    if (uid == null) return;
+    final key = _getProfileKey();
     final prefs = await SharedPreferences.getInstance();
     final p = _prefsKeyProfile;
-    await prefs.setString('${p}userName_$uid', _userName);
-    await prefs.setInt('${p}avatarIndex_$uid', _avatarIndex);
-    await prefs.setString('${p}avatarUrl_$uid', _avatarUrl ?? '');
+    await prefs.setString('${p}userName_$key', _userName);
+    await prefs.setInt('${p}avatarIndex_$key', _avatarIndex);
+    await prefs.setString('${p}avatarUrl_$key', _avatarUrl ?? '');
     await prefs.setString(
-      '${p}joinDate_$uid',
+      '${p}joinDate_$key',
       _joinDate?.toIso8601String() ?? '',
     );
-    await prefs.setString('${p}selectedTitleId_$uid', _selectedTitleId ?? '');
-    await prefs.setInt('${p}selectedBannerId_$uid', _selectedBannerId);
-    await prefs.setStringList('${p}unlockedTitleIds_$uid', _unlockedTitleIds);
+    await prefs.setString('${p}selectedTitleId_$key', _selectedTitleId ?? '');
+    await prefs.setInt('${p}selectedBannerId_$key', _selectedBannerId);
+    await prefs.setStringList('${p}unlockedTitleIds_$key', _unlockedTitleIds);
     await prefs.setStringList(
-      '${p}unlockedAvatarIds_$uid',
+      '${p}unlockedAvatarIds_$key',
       _unlockedAvatarIds.map((e) => e.toString()).toList(),
     );
     await prefs.setStringList(
-      '${p}unlockedBannerIds_$uid',
+      '${p}unlockedBannerIds_$key',
       _unlockedBannerIds.map((e) => e.toString()).toList(),
     );
   }
@@ -284,46 +289,49 @@ class ProfileProvider extends ChangeNotifier {
   static const String _prefsKeySelectedAccessoryIds = 'selectedAccessoryIds';
   static const String _prefsKeyUnlockedAccessoryIds = 'unlockedAccessoryIds';
   static const String _prefsKeyProfile = 'profile_';
+  static const String _guestKey = 'guest';
+
+  /// Giriş yapılmışsa uid, yoksa misafir key (login isteğe bağlı).
+  String _getProfileKey() {
+    return FirebaseService.auth.currentUser?.uid ?? _guestKey;
+  }
 
   /// Bir kerelik: ödüller sadece görevle açılsın diye eski "hepsi açık" verisini sıfırlamak için.
-  static const int _rewardsSchemaVersion = 3;
+  /// 4: banner'ları da kilitle (test için açılmıştı).
+  static const int _rewardsSchemaVersion = 4;
 
   /// Load theme and local-only prefs (weight, aksesuar) from SharedPreferences
   Future<void> _loadThemePreference() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final uid = FirebaseService.auth.currentUser?.uid;
+      final key = _getProfileKey();
       _isDarkTheme = prefs.getBool('isDarkTheme') ?? true; // Default to dark
-      _weightKg = uid != null
-          ? prefs.getDouble('${_prefsKeyWeight}_$uid')
-          : null;
-      if (uid != null) {
-        await _migrateRewardsLockedIfNeeded(prefs, uid);
-        final selectedList = prefs.getStringList(
-          '${_prefsKeySelectedAccessoryIds}_$uid',
-        );
-        _selectedAccessoryIds =
-            selectedList
-                ?.map((e) => int.tryParse(e) ?? 0)
-                .where((e) => e > 0)
-                .toList() ??
-            [];
-        final list = prefs.getStringList(
-          '${_prefsKeyUnlockedAccessoryIds}_$uid',
-        );
-        _unlockedAccessoryIds =
-            list
-                ?.map((e) => int.tryParse(e) ?? 0)
-                .where((e) => e > 0)
-                .toList() ??
-            [];
-      }
+      _localeCode = prefs.getString('appLanguage') ?? 'tr';
+      _weightKg = prefs.getDouble('${_prefsKeyWeight}_$key');
+      await _migrateRewardsLockedIfNeeded(prefs, key);
+      final selectedList = prefs.getStringList(
+        '${_prefsKeySelectedAccessoryIds}_$key',
+      );
+      _selectedAccessoryIds =
+          selectedList
+              ?.map((e) => int.tryParse(e) ?? 0)
+              .where((e) => e > 0)
+              .toList() ??
+          [];
+      final list = prefs.getStringList(
+        '${_prefsKeyUnlockedAccessoryIds}_$key',
+      );
+      _unlockedAccessoryIds =
+          list
+              ?.map((e) => int.tryParse(e) ?? 0)
+              .where((e) => e > 0)
+              .toList() ??
+          [];
       notifyListeners();
     } catch (e) {
       if (kDebugMode) {
         print('Error loading theme preference: $e');
       }
-      // Keep default value
     }
   }
 
@@ -333,21 +341,53 @@ class ProfileProvider extends ChangeNotifier {
     String uid,
   ) async {
     final key = '${_prefsKeyProfile}rewards_schema_$uid';
-    final version = prefs.getInt(key) ?? 0;
+    int version = prefs.getInt(key) ?? 0;
     if (version >= _rewardsSchemaVersion) return;
-    _unlockedTitleIds = [];
-    _unlockedAccessoryIds = [];
-    _unlockedAvatarIds = [];
-    _unlockedBannerIds = [];
-    await prefs.setStringList('${_prefsKeyProfile}unlockedTitleIds_$uid', []);
-    await prefs.setStringList('${_prefsKeyUnlockedAccessoryIds}_$uid', []);
-    await prefs.setStringList('${_prefsKeyProfile}unlockedAvatarIds_$uid', []);
-    await prefs.setStringList('${_prefsKeyProfile}unlockedBannerIds_$uid', []);
-    await prefs.setInt(key, _rewardsSchemaVersion);
+    if (version < 3) {
+      _unlockedTitleIds = [];
+      _unlockedAccessoryIds = [];
+      _unlockedAvatarIds = [];
+      _unlockedBannerIds = [];
+      await prefs.setStringList('${_prefsKeyProfile}unlockedTitleIds_$uid', []);
+      await prefs.setStringList('${_prefsKeyUnlockedAccessoryIds}_$uid', []);
+      await prefs.setStringList(
+        '${_prefsKeyProfile}unlockedAvatarIds_$uid',
+        [],
+      );
+      await prefs.setStringList(
+        '${_prefsKeyProfile}unlockedBannerIds_$uid',
+        [],
+      );
+      await prefs.setInt(key, 3);
+      version = 3;
+    }
+    if (version < 4) {
+      _unlockedBannerIds = [];
+      await prefs.setStringList(
+        '${_prefsKeyProfile}unlockedBannerIds_$uid',
+        [],
+      );
+      await prefs.setInt(key, 4);
+    }
     if (kDebugMode)
       print(
         '✅ Rewards migration: titles, accessories, avatars and banners locked',
       );
+  }
+
+  /// Set app language and save to SharedPreferences
+  Future<void> setLocale(String code) async {
+    if (_localeCode == code) return;
+    _localeCode = code;
+    notifyListeners();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('appLanguage', code);
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving language preference: $e');
+      }
+    }
   }
 
   /// Toggle theme and save preference
@@ -483,6 +523,35 @@ class ProfileProvider extends ChangeNotifier {
     }
   }
 
+  /// Tamamlanmış görevlerin ödüllerini otomatik verir (Görevler sayfasına girmeden de güncel olsun).
+  Future<void> claimCompletedRewardsIfAny() async {
+    try {
+      final tasksService = TasksService();
+      await tasksService.claimCompletedRewards(
+        unlockedTitleIds: _unlockedTitleIds,
+        unlockedAvatarIds: _unlockedAvatarIds,
+        unlockedBannerIds: _unlockedBannerIds,
+        unlockedAccessoryIds: _unlockedAccessoryIds,
+        onClaim: (rewardType, rewardId) async {
+          if (rewardType == RewardConstants.rewardTypeTitle) {
+            await addUnlockedTitleLocally(rewardId);
+          } else if (rewardType == RewardConstants.rewardTypeAvatar) {
+            final id = int.tryParse(rewardId);
+            if (id != null) await addUnlockedAvatarLocally(id);
+          } else if (rewardType == RewardConstants.rewardTypeBanner) {
+            final id = int.tryParse(rewardId);
+            if (id != null) await addUnlockedBannerLocally(id);
+          } else if (rewardType == RewardConstants.rewardTypeAccessory) {
+            final id = int.tryParse(rewardId);
+            if (id != null) await addUnlockedAccessoryLocally(id);
+          }
+        },
+      );
+    } catch (e) {
+      if (kDebugMode) print('Error claimCompletedRewardsIfAny: $e');
+    }
+  }
+
   /// Aksesuarı seçime ekler/çıkarır (toggle). Birden fazla seçilebilir. id=0 "Yok" tüm seçimi temizler. Yerelde saklanır.
   Future<void> toggleAccessory(int accessoryId) async {
     try {
@@ -495,30 +564,18 @@ class ProfileProvider extends ChangeNotifier {
         _selectedAccessoryIds.sort();
       }
       notifyListeners();
-      final uid = FirebaseService.auth.currentUser?.uid;
-      if (uid != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setStringList(
-          '${_prefsKeySelectedAccessoryIds}_$uid',
-          _selectedAccessoryIds.map((e) => e.toString()).toList(),
-        );
-      }
+      final key = _getProfileKey();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+        '${_prefsKeySelectedAccessoryIds}_$key',
+        _selectedAccessoryIds.map((e) => e.toString()).toList(),
+      );
     } catch (e) {
       if (kDebugMode) {
         print('Error toggling accessory: $e');
       }
       await _loadThemePreference();
       rethrow;
-    }
-  }
-
-  /// (Sadece debug) Sıfat kilidini test için açar. Görev tamamlamadan Ödüller > Sıfatlar’da denemek için.
-  Future<void> unlockTitleForTesting(String titleId) async {
-    if (!kDebugMode) return;
-    try {
-      await addUnlockedTitleLocally(titleId);
-    } catch (e) {
-      if (kDebugMode) print('Error unlockTitleForTesting: $e');
     }
   }
 
@@ -529,14 +586,12 @@ class ProfileProvider extends ChangeNotifier {
       _unlockedAccessoryIds.add(accessoryId);
       _unlockedAccessoryIds.sort();
       notifyListeners();
-      final uid = FirebaseService.auth.currentUser?.uid;
-      if (uid != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setStringList(
-          '${_prefsKeyUnlockedAccessoryIds}_$uid',
-          _unlockedAccessoryIds.map((e) => e.toString()).toList(),
-        );
-      }
+      final key = _getProfileKey();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setStringList(
+        '${_prefsKeyUnlockedAccessoryIds}_$key',
+        _unlockedAccessoryIds.map((e) => e.toString()).toList(),
+      );
     } catch (e) {
       if (kDebugMode) {
         print('Error adding unlocked accessory: $e');
@@ -551,14 +606,13 @@ class ProfileProvider extends ChangeNotifier {
     try {
       _weightKg = kg;
       notifyListeners();
-      final uid = FirebaseService.auth.currentUser?.uid;
-      if (uid == null) return;
+      final key = _getProfileKey();
       final prefs = await SharedPreferences.getInstance();
-      final key = '${_prefsKeyWeight}_$uid';
+      final weightKey = '${_prefsKeyWeight}_$key';
       if (kg != null) {
-        await prefs.setDouble(key, kg);
+        await prefs.setDouble(weightKey, kg);
       } else {
-        await prefs.remove(key);
+        await prefs.remove(weightKey);
       }
       await _loadProfileData();
     } catch (e) {

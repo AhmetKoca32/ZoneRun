@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'core/services/firebase_service.dart';
+import 'l10n/app_localizations.dart';
+import 'core/services/notification_service.dart';
 import 'core/theme/app_theme.dart';
 import 'core/widgets/splash_screen.dart';
 import 'features/auth/presentation/providers/auth_provider.dart';
@@ -19,6 +21,10 @@ void main() async {
 
   // Initialize Firebase
   await FirebaseService.initialize();
+
+  // Initialize notifications (timezone + local notifications)
+  await NotificationService.instance.initialize();
+  await NotificationService.instance.refreshSchedulesIfNeeded();
 
   // Use local emulator in debug mode
   // Android emulator must use 10.0.2.2 to access host machine's localhost
@@ -37,7 +43,7 @@ void main() async {
       print('⚠️ Could not configure Functions Emulator: $e');
     }
   }
-  
+                                                                                                                  
   runApp(const ZoneRunApp());
 }
 
@@ -62,6 +68,9 @@ class ZoneRunApp extends StatelessWidget {
                 ? AppTheme.darkTheme
                 : AppTheme.lightTheme,
             debugShowCheckedModeBanner: false,
+            locale: profileProvider.appLocale,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const SplashScreen(),
           );
         },

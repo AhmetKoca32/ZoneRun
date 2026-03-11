@@ -54,13 +54,14 @@ class MapService {
   Future<int> savePolygon({
     required String name,
     required List<LatLng> points,
+    DateTime? startedAt,
   }) async {
     final area = calculatePolygonArea(points);
     final polygon = PolygonModel(
       name: name,
       points: points,
       area: area,
-      createdAt: DateTime.now(),
+      createdAt: startedAt ?? DateTime.now(),
     );
 
     return await _databaseService.insertPolygon(polygon);

@@ -1,21 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/reward_constants.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../auth/presentation/pages/login_page.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/presentation/utils/auth_l10n.dart';
+import '../helpers/task_l10n_helper.dart';
 import '../providers/profile_provider.dart';
 import '../widgets/profile_hero_section.dart';
 import '../widgets/promo_credits_item.dart';
 import '../widgets/quick_access_cards.dart';
 import '../widgets/section_header.dart';
 import '../widgets/settings_list_item.dart';
+import 'share_preview_page.dart';
 import 'help_page.dart';
+import 'privacy_page.dart';
+import 'about_page.dart';
+import 'language_region_page.dart';
 import 'rewards_page.dart';
+import 'statistics_page.dart';
 import 'tasks_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -92,20 +99,50 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
 
-                // Profil banner (avatar + isim) — tıklanınca isim/avatar düzenleme
-                GestureDetector(
-                  onTap: () => _showProfileEditOptions(context, provider),
-                  child: ProfileHeroSection(
-                    userName: provider.userName,
-                    avatarIndex: provider.avatarIndex,
-                    avatarUrl: provider.avatarUrl,
-                    joinDate: provider.joinDate,
-                    selectedBannerId: provider.selectedBannerId,
-                    selectedTitleLabel: provider.selectedTitleId != null
-                        ? RewardConstants.titleLabels[provider.selectedTitleId]
-                        : null,
-                    selectedAccessoryIds: provider.selectedAccessoryIds,
-                  ),
+                // Profil banner (avatar + isim) — tıklanınca isim/avatar düzenleme; sağ üstte paylaş
+                Builder(
+                  builder: (context) {
+                    final isLoggedIn =
+                        Provider.of<AuthProvider>(context).isLoggedIn;
+                    final displayName =
+                        isLoggedIn ? provider.userName : AppLocalizations.of(context)!.guest;
+                    return GestureDetector(
+                      onTap: () => _showProfileEditOptions(context, provider),
+                      child: ProfileHeroSection(
+                        userName: displayName,
+                        avatarIndex: provider.avatarIndex,
+                        avatarUrl: provider.avatarUrl,
+                        joinDate: isLoggedIn ? provider.joinDate : null,
+                        selectedBannerId: provider.selectedBannerId,
+                        selectedTitleLabel: provider.selectedTitleId != null
+                            ? TaskL10nHelper.getTitleLabel(
+                                AppLocalizations.of(context)!,
+                                provider.selectedTitleId!,
+                              )
+                            : null,
+                        selectedAccessoryIds: provider.selectedAccessoryIds,
+                        onShareTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => SharePreviewPage(
+                                userName: displayName,
+                                selectedBannerId: provider.selectedBannerId,
+                                selectedTitleLabel:
+                                    provider.selectedTitleId != null
+                                        ? TaskL10nHelper.getTitleLabel(
+                                            AppLocalizations.of(context)!,
+                                            provider.selectedTitleId!,
+                                          )
+                                        : null,
+                                avatarIndex: provider.avatarIndex,
+                                avatarUrl: provider.avatarUrl,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
                 ),
 
                 // Quick Access Cards
@@ -119,7 +156,11 @@ class _ProfilePageState extends State<ProfilePage> {
                     );
                   },
                   onStatisticsTap: () {
-                    // Navigate to statistics
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const StatisticsPage(),
+                      ),
+                    );
                   },
                   onThemeTap: () {
                     provider.toggleTheme();
@@ -127,10 +168,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
 
                 // Başarılar & Ödüller Section
-                const SectionHeader(title: 'Başarılar & Ödüller'),
+                SectionHeader(title: AppLocalizations.of(context)!.sectionAchievements),
                 PromoCreditsItem(
                   icon: Icons.emoji_events,
-                  title: 'Görevler',
+                  title: AppLocalizations.of(context)!.tasks,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -141,7 +182,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 PromoCreditsItem(
                   icon: Icons.card_giftcard,
-                  title: 'Ödüller',
+                  title: AppLocalizations.of(context)!.rewards,
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -152,47 +193,121 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
 
                 // My Account Section
-                const SectionHeader(title: 'Hesabım'),
-                SettingsListItem(
-                  icon: Icons.notifications_outlined,
-                  title: 'Bildirimler',
-                  onTap: () {
-                    // Navigate to notifications settings
-                  },
-                ),
+                SectionHeader(title: AppLocalizations.of(context)!.sectionMyAccount),
                 SettingsListItem(
                   icon: Icons.lock_outline,
-                  title: 'Gizlilik',
+                  title: AppLocalizations.of(context)!.privacy,
                   onTap: () {
-                    // Navigate to privacy settings
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const PrivacyPage(),
+                      ),
+                    );
                   },
                 ),
                 SettingsListItem(
                   icon: Icons.language_outlined,
-                  title: 'Dil ve Bölge',
+                  title: AppLocalizations.of(context)!.language,
                   onTap: () {
-                    // Navigate to language settings
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const LanguageRegionPage(),
+                      ),
+                    );
                   },
                 ),
                 SettingsListItem(
                   icon: Icons.info_outline,
-                  title: 'Hakkında',
+                  title: AppLocalizations.of(context)!.about,
                   onTap: () {
-                    // Navigate to about page
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const AboutPage(),
+                      ),
+                    );
                   },
                 ),
-                SettingsListItem(
-                  icon: Icons.logout,
-                  title: 'Çıkış Yap',
-                  onTap: () {
-                    _showLogoutConfirmation(context);
-                  },
-                ),
-                SettingsListItem(
-                  icon: Icons.delete_outline,
-                  title: 'Hesabı Sil',
-                  onTap: () {
-                    // Show delete account confirmation
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) {
+                    if (authProvider.isLoggedIn) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          SettingsListItem(
+                            icon: Icons.logout,
+                            title: AppLocalizations.of(context)!.logout,
+                            onTap: () {
+                              _showLogoutConfirmation(context);
+                            },
+                          ),
+                          SettingsListItem(
+                            icon: Icons.delete_outline,
+                            title: AppLocalizations.of(context)!.deleteAccount,
+                            onTap: () {
+                              _showDeleteAccountConfirmation(context);
+                            },
+                          ),
+                        ],
+                      );
+                    }
+                    final theme = context.appTheme;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        margin: const EdgeInsets.only(top: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.secondaryBackground.withOpacity(0.6),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.border.withOpacity(0.8),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: theme.textPrimary.withOpacity(0.06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              AppLocalizations.of(context)!.profileLoginPrompt,
+                              style: AppTypography.bodySmall.copyWith(
+                                color: theme.textSecondary,
+                                height: 1.4,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: FilledButton.icon(
+                                onPressed: () {
+                                  Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginPage(),
+                                    ),
+                                  );
+                                },
+                                icon: const Icon(Icons.login_rounded, size: 20),
+                                label: Text(AppLocalizations.of(context)!.loginOrSignUp),
+                                style: FilledButton.styleFrom(
+                                  backgroundColor: theme.accent,
+                                  foregroundColor: theme.primaryBackground,
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
                   },
                 ),
 
@@ -261,7 +376,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Profil Düzenle',
+                      AppLocalizations.of(context)!.profileEditTitle,
                       style: AppTypography.headlineSmall.copyWith(
                         color: theme.textPrimary,
                         fontWeight: AppTypography.bold,
@@ -272,7 +387,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'İsim veya profil fotoğrafını güncelle',
+                  AppLocalizations.of(context)!.profileEditSubtitle,
                   style: AppTypography.bodySmall.copyWith(
                     color: theme.textSecondary,
                     fontWeight: AppTypography.light,
@@ -280,36 +395,38 @@ class _ProfilePageState extends State<ProfilePage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                // Seçenek kartları
+                // Seçenek kartları (giriş yapmamışsa isim düzenleme gösterilmez)
+                if (Provider.of<AuthProvider>(context, listen: false).isLoggedIn) ...[
+                  _buildProfileEditOptionCard(
+                    context: context,
+                    icon: Icons.person_outline_rounded,
+                    title: AppLocalizations.of(context)!.editName,
+                    subtitle: AppLocalizations.of(context)!.editNameSubtitle,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _showNameEditDialog(context, provider);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                ],
                 _buildProfileEditOptionCard(
                   context: context,
-                  icon: Icons.person_outline_rounded,
-                  title: 'İsim Düzenle',
-                  subtitle: 'Görünen adınızı değiştirin',
+                  icon: Icons.face_rounded,
+                  title: AppLocalizations.of(context)!.selectAvatar,
+                  subtitle: AppLocalizations.of(context)!.selectAvatarSubtitle,
                   onTap: () {
                     Navigator.of(context).pop();
-                    _showNameEditDialog(context, provider);
-                  },
-                ),
-                const SizedBox(height: 12),
-                _buildProfileEditOptionCard(
-                  context: context,
-                  icon: Icons.photo_camera_outlined,
-                  title: 'Profil Fotoğrafı',
-                  subtitle: 'Fotoğraf veya avatar seçin',
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    _showPhotoSelectionSheet(context, provider);
+                    _showAvatarSelectionDialog(context, provider);
                   },
                 ),
                 const SizedBox(height: 12),
                 _buildProfileEditOptionCard(
                   context: context,
                   icon: Icons.monitor_weight_outlined,
-                  title: 'Kilo (isteğe bağlı)',
+                  title: AppLocalizations.of(context)!.weightOptional,
                   subtitle: provider.weightKg != null
-                      ? '${provider.weightKg!.toStringAsFixed(0)} kg · Kalori tahmini için'
-                      : 'Kalori tahmini için kilo girin',
+                      ? '${provider.weightKg!.toStringAsFixed(0)} kg · ${AppLocalizations.of(context)!.weightSubtitle}'
+                      : AppLocalizations.of(context)!.weightSubtitle,
                   onTap: () {
                     Navigator.of(context).pop();
                     _showWeightEditDialog(context, provider);
@@ -397,7 +514,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'Kilo (isteğe bağlı)',
+                AppLocalizations.of(context)!.weightOptional,
                 style: AppTypography.headlineSmall.copyWith(
                   color: theme.textPrimary,
                   fontWeight: AppTypography.bold,
@@ -406,7 +523,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Kalori tahmini için kg girin. Boş bırakırsanız varsayılan değer kullanılır.',
+                AppLocalizations.of(context)!.weightDialogHint,
                 style: AppTypography.bodySmall.copyWith(
                   color: theme.textSecondary,
                   fontWeight: AppTypography.light,
@@ -425,7 +542,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'Örn. 70',
+                  hintText: AppLocalizations.of(context)!.weightHintExample,
                   hintStyle: AppTypography.bodyMedium.copyWith(
                     color: theme.textSecondary,
                   ),
@@ -465,7 +582,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Center(
                           child: Text(
-                            'İptal',
+                            AppLocalizations.of(context)!.cancel,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                               fontWeight: AppTypography.semiBold,
@@ -512,7 +629,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Center(
                           child: Text(
-                            'Kaydet',
+                            AppLocalizations.of(context)!.save,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.primaryBackground,
                               fontWeight: AppTypography.bold,
@@ -600,248 +717,6 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showPhotoSelectionSheet(
-    BuildContext context,
-    ProfileProvider provider,
-  ) {
-    final theme = context.appTheme;
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [theme.surface, theme.surface.withOpacity(0.95)],
-          ),
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-          boxShadow: [
-            BoxShadow(
-              color: theme.textPrimary.withOpacity(0.25),
-              blurRadius: 20,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                margin: const EdgeInsets.only(top: 12, bottom: 8),
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: theme.textSecondary,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 48,
-                      height: 48,
-                      decoration: BoxDecoration(
-                        color: theme.primaryBackground.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        Icons.camera_alt,
-                        color: theme.textPrimary,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Profil Fotoğrafı Seç',
-                            style: AppTypography.headlineSmall.copyWith(
-                              color: theme.textPrimary,
-                              fontWeight: AppTypography.bold,
-                              fontSize: 20,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Fotoğraf veya avatar seçin',
-                            style: AppTypography.bodySmall.copyWith(
-                              color: theme.textSecondary,
-                              fontWeight: AppTypography.light,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  children: [
-                    _buildPhotoOptionCard(
-                      context: context,
-                      icon: Icons.photo_library,
-                      title: 'Galeriden Seç',
-                      subtitle: 'Fotoğraf galerinizden seçin',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _pickImage(context, provider, ImageSource.gallery);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPhotoOptionCard(
-                      context: context,
-                      icon: Icons.camera_alt,
-                      title: 'Kamera ile Çek',
-                      subtitle: 'Yeni fotoğraf çekin',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _pickImage(context, provider, ImageSource.camera);
-                      },
-                    ),
-                    const SizedBox(height: 12),
-                    _buildPhotoOptionCard(
-                      context: context,
-                      icon: Icons.face,
-                      title: 'Avatar Seç',
-                      subtitle: 'Hazır avatar\'lardan seçin',
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        _showAvatarSelectionDialog(context, provider);
-                      },
-                    ),
-                    if (provider.avatarUrl != null) ...[
-                      const SizedBox(height: 12),
-                      _buildPhotoOptionCard(
-                        context: context,
-                        icon: Icons.delete_outline,
-                        title: 'Fotoğrafı Kaldır',
-                        subtitle: 'Mevcut fotoğrafı sil',
-                        iconColor: theme.textSecondary,
-                        textColor: theme.textSecondary,
-                        onTap: () {
-                          provider.updateAvatarUrl(null);
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoOptionCard({
-    required BuildContext context,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    Color? iconColor,
-    Color? textColor,
-  }) {
-    final theme = context.appTheme;
-    final defaultIconColor = iconColor ?? theme.textPrimary;
-    final defaultTextColor = textColor ?? theme.textPrimary;
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: theme.secondaryBackground.withOpacity(0.5),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.border, width: 1),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 48,
-              height: 48,
-              decoration: BoxDecoration(
-                color: theme.primaryBackground.withOpacity(0.3),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: defaultIconColor, size: 24),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: AppTypography.bodyMedium.copyWith(
-                      color: defaultTextColor,
-                      fontWeight: AppTypography.semiBold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: AppTypography.bodySmall.copyWith(
-                      color: theme.textSecondary,
-                      fontWeight: AppTypography.light,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios, color: theme.textSecondary, size: 16),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Future<void> _pickImage(
-    BuildContext context,
-    ProfileProvider provider,
-    ImageSource source,
-  ) async {
-    try {
-      final ImagePicker picker = ImagePicker();
-      final XFile? image = await picker.pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 85,
-      );
-      if (image != null) {
-        provider.updateAvatarUrl(image.path);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        final theme = context.appTheme;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Fotoğraf seçilirken bir hata oluştu: $e',
-              style: AppTypography.bodyMedium.copyWith(
-                color: theme.textPrimary,
-              ),
-            ),
-            backgroundColor: theme.secondaryBackground,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    }
-  }
-
   void _showAvatarSelectionDialog(
     BuildContext context,
     ProfileProvider provider,
@@ -921,7 +796,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 20),
               // Title & subtitle
               Text(
-                'Avatar Seç',
+                AppLocalizations.of(context)!.selectAvatar,
                 style: AppTypography.headlineSmall.copyWith(
                   color: theme.textPrimary,
                   fontWeight: AppTypography.bold,
@@ -930,7 +805,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 6),
               Text(
-                'Profilinizde görünecek avatarı seçin',
+                AppLocalizations.of(context)!.profileSelectAvatarDescription,
                 style: AppTypography.bodySmall.copyWith(
                   color: theme.textSecondary,
                   fontWeight: AppTypography.light,
@@ -1020,7 +895,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 20),
               // Bottom hint
               Text(
-                'Seçmek için avatara dokunun',
+                AppLocalizations.of(context)!.profileTapAvatarToSelect,
                 style: AppTypography.bodySmall.copyWith(
                   color: theme.textSecondary.withOpacity(0.8),
                   fontWeight: AppTypography.light,
@@ -1104,7 +979,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'İsim Düzenle',
+                AppLocalizations.of(context)!.editName,
                 style: AppTypography.headlineSmall.copyWith(
                   color: theme.textPrimary,
                   fontWeight: AppTypography.bold,
@@ -1113,7 +988,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
               const SizedBox(height: 8),
               Text(
-                'Yeni isminizi girin',
+                AppLocalizations.of(context)!.profileEnterNewName,
                 style: AppTypography.bodySmall.copyWith(
                   color: theme.textSecondary,
                   fontWeight: AppTypography.light,
@@ -1129,7 +1004,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   fontSize: 16,
                 ),
                 decoration: InputDecoration(
-                  hintText: 'İsminizi girin',
+                  hintText: AppLocalizations.of(context)!.profileEnterNameHint,
                   hintStyle: AppTypography.bodyMedium.copyWith(
                     color: theme.textSecondary,
                   ),
@@ -1168,7 +1043,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Center(
                           child: Text(
-                            'İptal',
+                            AppLocalizations.of(context)!.cancel,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                               fontWeight: AppTypography.semiBold,
@@ -1207,7 +1082,7 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         child: Center(
                           child: Text(
-                            'Kaydet',
+                            AppLocalizations.of(context)!.save,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.primaryBackground,
                               fontWeight: AppTypography.bold,
@@ -1228,63 +1103,251 @@ class _ProfilePageState extends State<ProfilePage> {
 
   void _showLogoutConfirmation(BuildContext context) {
     final theme = context.appTheme;
-    
+
     showDialog(
       context: context,
+      barrierColor: theme.primaryBackground.withOpacity(0.85),
       builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: theme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'Çıkış Yap',
-            style: AppTypography.headlineSmall.copyWith(
-              color: theme.textPrimary,
-              fontWeight: AppTypography.bold,
-            ),
-          ),
-          content: Text(
-            'Hesabınızdan çıkmak istediğinize emin misiniz?',
-            style: AppTypography.bodyMedium.copyWith(
-              color: theme.textSecondary,
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
-                'İptal',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: theme.textSecondary,
-                ),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            decoration: BoxDecoration(
+              color: theme.surface,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: theme.border.withOpacity(0.4),
+                width: 1,
               ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(dialogContext).pop();
-                
-                final authProvider = Provider.of<AuthProvider>(context, listen: false);
-                await authProvider.signOut();
-                
-                if (context.mounted) {
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                    (route) => false,
-                  );
-                }
-              },
-              child: Text(
-                'Çıkış Yap',
-                style: AppTypography.bodyMedium.copyWith(
-                  color: theme.textPrimary,
-                  fontWeight: AppTypography.semiBold,
+              boxShadow: [
+                BoxShadow(
+                  color: theme.textPrimary.withOpacity(0.15),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
                 ),
-              ),
+              ],
             ),
-          ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: theme.accent.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.logout_rounded,
+                    size: 28,
+                    color: theme.accent,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  AppLocalizations.of(context)!.logoutConfirmTitle,
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: theme.textPrimary,
+                    fontWeight: AppTypography.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  AppLocalizations.of(context)!.logoutConfirmMessage,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: theme.textSecondary,
+                    height: 1.45,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.textSecondary,
+                          side: BorderSide(
+                            color: theme.border.withOpacity(0.8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(context)!.cancel),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () async {
+                          Navigator.of(dialogContext).pop();
+                          final authProvider =
+                              Provider.of<AuthProvider>(context, listen: false);
+                          await authProvider.signOut();
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: theme.accent,
+                          foregroundColor: theme.primaryBackground,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(context)!.logout),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDeleteAccountConfirmation(BuildContext context) {
+    final theme = context.appTheme;
+
+    showDialog(
+      context: context,
+      barrierColor: theme.primaryBackground.withOpacity(0.85),
+      builder: (BuildContext dialogContext) {
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+            decoration: BoxDecoration(
+              color: theme.surface,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
+                color: theme.border.withOpacity(0.4),
+                width: 1,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.textPrimary.withOpacity(0.15),
+                  blurRadius: 32,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: Colors.red.withOpacity(0.12),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.delete_forever_rounded,
+                    size: 28,
+                    color: Colors.red.shade400,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  AppLocalizations.of(context)!.deleteAccountConfirmTitle,
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: theme.textPrimary,
+                    fontWeight: AppTypography.bold,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  AppLocalizations.of(context)!.deleteAccountConfirmMessage,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: theme.textSecondary,
+                    height: 1.45,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.of(dialogContext).pop(),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: theme.textSecondary,
+                          side: BorderSide(
+                            color: theme.border.withOpacity(0.8),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(context)!.cancel),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () async {
+                          Navigator.of(dialogContext).pop();
+                          final authProvider =
+                              Provider.of<AuthProvider>(context, listen: false);
+                          try {
+                            await authProvider.deleteAccount();
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AppLocalizations.of(context)!.profileAccountDeleted,
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: theme.textPrimary,
+                                    ),
+                                  ),
+                                  backgroundColor: theme.secondaryBackground,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          } catch (_) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    AuthL10n.messageFor(context, authProvider.errorCode) ??
+                                        AppLocalizations.of(context)!.profileAccountDeleteError,
+                                    style: AppTypography.bodyMedium.copyWith(
+                                      color: theme.textPrimary,
+                                    ),
+                                  ),
+                                  backgroundColor: theme.secondaryBackground,
+                                  behavior: SnackBarBehavior.floating,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.red.shade400,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                        child: Text(AppLocalizations.of(context)!.deleteAccountConfirmConfirm),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
         );
       },
     );

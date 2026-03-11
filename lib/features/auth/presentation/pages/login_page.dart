@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/app_localizations_extra.dart';
 import '../providers/auth_provider.dart';
+import '../utils/auth_l10n.dart';
 import 'sign_up_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -43,12 +46,12 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MainNavigation()),
         (route) => false,
       );
-    } else if (mounted && authProvider.errorMessage != null) {
+    } else if (mounted && authProvider.errorCode != null) {
       final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage!,
+            AuthL10n.messageFor(context, authProvider.errorCode)!,
             style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
           ),
           backgroundColor: theme.secondaryBackground,
@@ -56,6 +59,145 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+  }
+
+  void _showForgotPasswordDialog(BuildContext context) {
+    final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
+    final emailController = TextEditingController(
+      text: _emailController.text.trim(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: theme.surface,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            l10n.authForgotPasswordTitle,
+            style: AppTypography.headlineSmall.copyWith(
+              color: theme.textPrimary,
+              fontWeight: AppTypography.bold,
+            ),
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                l10n.authForgotPasswordDescription,
+                style: AppTypography.bodySmall.copyWith(
+                  color: theme.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
+                autocorrect: false,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.textPrimary,
+                ),
+                decoration: InputDecoration(
+                  hintText: l10n.authEmailHint,
+                  hintStyle: AppTypography.bodyMedium.copyWith(
+                    color: theme.textSecondary,
+                  ),
+                  filled: true,
+                  fillColor: theme.secondaryBackground,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                emailController.dispose();
+                Navigator.of(dialogContext).pop();
+              },
+              child: Text(
+                l10n.cancel,
+                style: AppTypography.bodyMedium.copyWith(
+                  color: theme.textSecondary,
+                ),
+              ),
+            ),
+            FilledButton(
+              onPressed: () async {
+                final email = emailController.text.trim();
+                if (email.isEmpty || !email.contains('@')) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.authForgotPasswordInvalidEmail,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      backgroundColor: theme.secondaryBackground,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                  return;
+                }
+                final authProvider =
+                    Provider.of<AuthProvider>(context, listen: false);
+                final success =
+                    await authProvider.sendPasswordResetEmail(email);
+                emailController.dispose();
+                if (!dialogContext.mounted) return;
+                Navigator.of(dialogContext).pop();
+                if (!context.mounted) return;
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        l10n.authForgotPasswordSent,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      backgroundColor: theme.secondaryBackground,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                } else if (authProvider.errorCode != null) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AuthL10n.messageFor(context, authProvider.errorCode)!,
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: theme.textPrimary,
+                        ),
+                      ),
+                      backgroundColor: theme.secondaryBackground,
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                }
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: theme.accent,
+                foregroundColor: theme.primaryBackground,
+              ),
+              child: const Text('Gönder'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -67,12 +209,12 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const MainNavigation()),
         (route) => false,
       );
-    } else if (mounted && authProvider.errorMessage != null) {
+    } else if (mounted && authProvider.errorCode != null) {
       final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage!,
+            AuthL10n.messageFor(context, authProvider.errorCode)!,
             style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
           ),
           backgroundColor: theme.secondaryBackground,
@@ -85,6 +227,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -100,10 +243,12 @@ class _LoginPageState extends State<LoginPage> {
         ),
         child: SafeArea(
           bottom: false,
-          child: Column(
+          child: Stack(
             children: [
-              // Top section with logo
-              SizedBox(height: screenHeight * 0.12),
+              Column(
+                children: [
+                  // Top section with logo
+                  SizedBox(height: screenHeight * 0.12),
               Center(
                 child: Image.asset(
                   'assets/icons/zonerun-high-resolution-logo-transparent.png',
@@ -156,7 +301,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Giriş Yap',
+                                      l10n.authLoginTab,
                                       style: AppTypography.bodyMedium.copyWith(
                                         color: theme.textPrimary,
                                         fontWeight: AppTypography.bold,
@@ -208,7 +353,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Kayıt Ol',
+                                      l10n.authSignUpTab,
                                       style: AppTypography.bodyMedium.copyWith(
                                         color: theme.textSecondary,
                                       ),
@@ -229,7 +374,7 @@ class _LoginPageState extends State<LoginPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'email@domain.com',
+                              hintText: l10n.authEmailHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -257,10 +402,10 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Lütfen e-posta adresinizi girin';
+                                return l10n.authEmailRequired;
                               }
                               if (!value.contains('@')) {
-                                return 'Geçerli bir e-posta adresi girin';
+                                return l10n.authEmailInvalid;
                               }
                               return null;
                             },
@@ -275,7 +420,7 @@ class _LoginPageState extends State<LoginPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Şifre',
+                              hintText: l10n.authPasswordHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -316,13 +461,36 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Lütfen şifrenizi girin';
+                                return l10n.authPasswordRequired;
                               }
                               if (value.length < 6) {
-                                return 'Şifre en az 6 karakter olmalıdır';
+                                return l10n.authPasswordMinLength;
                               }
                               return null;
                             },
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton(
+                              onPressed: () => _showForgotPasswordDialog(context),
+                              style: TextButton.styleFrom(
+                                foregroundColor: theme.accent,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 0,
+                                  vertical: 4,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                              ),
+                              child: Text(
+                                l10n.authForgotPassword,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: theme.accent,
+                                  fontWeight: AppTypography.medium,
+                                ),
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 24),
 
@@ -356,7 +524,7 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           )
                                         : Text(
-                                            'Devam Et',
+                                            l10n.authContinueButton,
                                             style: AppTypography.bodyLarge
                                                 .copyWith(
                                                   color: theme.surface,
@@ -374,7 +542,7 @@ class _LoginPageState extends State<LoginPage> {
                           // Divider
                           Center(
                             child: Text(
-                              'veya',
+                              l10n.authOr,
                               style: AppTypography.bodySmall.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -419,7 +587,7 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'Google ile Devam Et',
+                                      l10n.authContinueWithGoogle,
                                         style: AppTypography.bodyMedium
                                             .copyWith(
                                               color: theme.textPrimary,
@@ -439,7 +607,7 @@ class _LoginPageState extends State<LoginPage> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Text(
-                              'Devam ederek Kullanım Şartları ve Gizlilik Politikası\'nı kabul etmiş olursunuz',
+                              l10n.authTerms,
                               style: AppTypography.bodySmall.copyWith(
                                 color: theme.textSecondary,
                                 fontSize: 11,
@@ -450,6 +618,20 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
+                  ),
+                ),
+              ),
+            ],
+              ),
+              Positioned(
+                top: 0,
+                left: 0,
+                child: IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                  color: Colors.white,
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.black26,
                   ),
                 ),
               ),

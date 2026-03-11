@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class MetricsSection extends StatefulWidget {
@@ -22,6 +23,7 @@ class _MetricsSectionState extends State<MetricsSection> {
   Widget build(BuildContext context) {
     return Consumer<HomeProvider>(
       builder: (context, provider, child) {
+        final l10n = AppLocalizations.of(context)!;
         final stats = provider.stats ?? {};
         final totalArea = (stats['totalArea'] as num?)?.toDouble() ?? 0.0;
         final todayDistance =
@@ -47,18 +49,21 @@ class _MetricsSectionState extends State<MetricsSection> {
                     child: _LeftMetricCard(
                       value: totalArea,
                       formatter: provider.formatArea,
+                      label: l10n.metricsConquered,
                     ),
                   ),
                   const SizedBox(width: 12),
                   _CenterMetricCircle(
                     value: todayDistance,
                     formatter: provider.formatDistance,
+                    label: l10n.metricsToday,
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: _RightMetricCard(
                       value: totalDistance,
                       formatter: provider.formatDistance,
+                      label: l10n.metricsTotal,
                     ),
                   ),
                 ],
@@ -68,6 +73,7 @@ class _MetricsSectionState extends State<MetricsSection> {
             _AnimatedSeeStatsButton(
               showStats: showStats,
               onTap: _onSeeStatsPressed,
+              label: l10n.metricsStatistics,
             ),
             _AnimatedStatsCards(
               showStats: showStats,
@@ -80,6 +86,12 @@ class _MetricsSectionState extends State<MetricsSection> {
               formatArea: provider.formatArea,
               formatCalories: provider.formatCalories,
               formatStreak: provider.formatStreak,
+              averageAreaLabel: l10n.averageArea,
+              largestAreaLabel: l10n.largestArea,
+              streakLabel: l10n.streak,
+              highestStreakLabel: l10n.highestStreak,
+              caloriesLabel: l10n.calories,
+              totalLabel: l10n.totalLabel,
             ),
           ],
         );
@@ -165,8 +177,13 @@ class _AnimatedValueState extends State<_AnimatedValue>
 class _LeftMetricCard extends StatelessWidget {
   final double value;
   final String Function(double) formatter;
+  final String label;
 
-  const _LeftMetricCard({required this.value, required this.formatter});
+  const _LeftMetricCard({
+    required this.value,
+    required this.formatter,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -202,7 +219,7 @@ class _LeftMetricCard extends StatelessWidget {
         const SizedBox(height: 2),
         // Label (smallest)
         Text(
-          'FETHEDİLEN',
+          label,
           style: AppTypography.labelSmall.copyWith(
             color: theme.textSecondary,
             fontWeight: AppTypography.light,
@@ -219,8 +236,13 @@ class _LeftMetricCard extends StatelessWidget {
 class _CenterMetricCircle extends StatelessWidget {
   final double value;
   final String Function(double) formatter;
+  final String label;
 
-  const _CenterMetricCircle({required this.value, required this.formatter});
+  const _CenterMetricCircle({
+    required this.value,
+    required this.formatter,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -265,7 +287,7 @@ class _CenterMetricCircle extends StatelessWidget {
             const SizedBox(height: 4),
             // Label (smallest)
             Text(
-              'BUGÜN',
+              label,
               style: AppTypography.labelSmall.copyWith(
                 color: theme.textPrimary,
                 fontWeight: AppTypography.light,
@@ -284,8 +306,13 @@ class _CenterMetricCircle extends StatelessWidget {
 class _RightMetricCard extends StatelessWidget {
   final double value;
   final String Function(double) formatter;
+  final String label;
 
-  const _RightMetricCard({required this.value, required this.formatter});
+  const _RightMetricCard({
+    required this.value,
+    required this.formatter,
+    required this.label,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -322,7 +349,7 @@ class _RightMetricCard extends StatelessWidget {
         const SizedBox(height: 2),
         // Label (smallest)
         Text(
-          'TOPLAM',
+          label,
           style: AppTypography.labelSmall.copyWith(
             color: theme.textSecondary,
             fontWeight: AppTypography.light,
@@ -340,8 +367,13 @@ class _RightMetricCard extends StatelessWidget {
 class _AnimatedSeeStatsButton extends StatefulWidget {
   final bool showStats;
   final VoidCallback onTap;
+  final String label;
 
-  const _AnimatedSeeStatsButton({required this.showStats, required this.onTap});
+  const _AnimatedSeeStatsButton({
+    required this.showStats,
+    required this.onTap,
+    required this.label,
+  });
 
   @override
   State<_AnimatedSeeStatsButton> createState() =>
@@ -362,7 +394,7 @@ class _AnimatedSeeStatsButtonState extends State<_AnimatedSeeStatsButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'İSTATİSTİKLER',
+              widget.label,
               style: TextStyle(
                 color: theme.textPrimary,
                 fontSize: 12,
@@ -402,6 +434,12 @@ class _AnimatedStatsCards extends StatefulWidget {
   final String Function(double) formatArea;
   final String Function(int) formatCalories;
   final String Function(int) formatStreak;
+  final String averageAreaLabel;
+  final String largestAreaLabel;
+  final String streakLabel;
+  final String highestStreakLabel;
+  final String caloriesLabel;
+  final String totalLabel;
 
   const _AnimatedStatsCards({
     required this.showStats,
@@ -414,6 +452,12 @@ class _AnimatedStatsCards extends StatefulWidget {
     required this.formatArea,
     required this.formatCalories,
     required this.formatStreak,
+    required this.averageAreaLabel,
+    required this.largestAreaLabel,
+    required this.streakLabel,
+    required this.highestStreakLabel,
+    required this.caloriesLabel,
+    required this.totalLabel,
   });
 
   @override
@@ -487,10 +531,10 @@ class _AnimatedStatsCardsState extends State<_AnimatedStatsCards>
               children: [
                 Expanded(
                   child: _StatCard(
-                    title: 'Ortalama Alan',
+                    title: widget.averageAreaLabel,
                     value: widget.formatArea(widget.averageArea),
                     icon: Icons.landscape_outlined,
-                    badgeLabel: 'En Büyük Alan',
+                    badgeLabel: widget.largestAreaLabel,
                     badgeValue: widget.formatArea(widget.maxArea),
                   ),
                 ),
@@ -500,15 +544,17 @@ class _AnimatedStatsCardsState extends State<_AnimatedStatsCards>
                     todayCalories: widget.todayCalories,
                     totalCalories: widget.totalCalories,
                     formatCalories: widget.formatCalories,
+                    caloriesLabel: widget.caloriesLabel,
+                    totalLabel: widget.totalLabel,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: _StatCard(
-                    title: 'Seri',
+                    title: widget.streakLabel,
                     value: widget.formatStreak(widget.streak),
                     icon: Icons.trending_up,
-                    badgeLabel: 'En Yüksek Seri',
+                    badgeLabel: widget.highestStreakLabel,
                     badgeValue: widget.formatStreak(widget.maxStreak),
                   ),
                 ),
@@ -631,11 +677,15 @@ class _CalorieStatCard extends StatelessWidget {
   final int todayCalories;
   final int totalCalories;
   final String Function(int) formatCalories;
+  final String caloriesLabel;
+  final String totalLabel;
 
   const _CalorieStatCard({
     required this.todayCalories,
     required this.totalCalories,
     required this.formatCalories,
+    required this.caloriesLabel,
+    required this.totalLabel,
   });
 
   @override
@@ -662,7 +712,7 @@ class _CalorieStatCard extends StatelessWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(
-                  'Kalori',
+                  caloriesLabel,
                   style: AppTypography.labelSmall.copyWith(
                     color: theme.textSecondary,
                     fontWeight: AppTypography.medium,
@@ -700,7 +750,7 @@ class _CalorieStatCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'Toplam',
+                  totalLabel,
                   style: AppTypography.labelSmall.copyWith(
                     color: theme.textSecondary,
                     fontWeight: AppTypography.medium,

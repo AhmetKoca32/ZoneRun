@@ -8,6 +8,9 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/map_styles.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/models/polygon_model.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/app_localizations_extra.dart';
+import '../../../history/presentation/providers/history_provider.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../../data/services/map_service.dart';
 import '../providers/map_provider.dart';
@@ -218,7 +221,7 @@ class _MapPageState extends State<MapPage> {
             icon: gmaps.BitmapDescriptor.defaultMarkerWithHue(
               gmaps.BitmapDescriptor.hueGreen,
             ),
-            infoWindow: const gmaps.InfoWindow(title: 'Başlangıç'),
+            infoWindow: gmaps.InfoWindow(title: AppLocalizations.of(context)!.mapStart),
           ),
         );
 
@@ -393,6 +396,7 @@ class _MapPageState extends State<MapPage> {
 
   Future<void> _showCompleteDialog(MapProvider provider) async {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     final nameController = TextEditingController();
     final formKey = GlobalKey<FormState>();
 
@@ -436,7 +440,7 @@ class _MapPageState extends State<MapPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Poligonu Tamamla',
+                          l10n.mapCompletePolygonTitle,
                             style: TextStyle(
                               color: theme.textPrimary,
                               fontSize: 20,
@@ -446,7 +450,7 @@ class _MapPageState extends State<MapPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Fethedilen alan için bir isim verin',
+                          l10n.mapCompletePolygonSubtitle,
                             style: TextStyle(
                               color: theme.textSecondary,
                               fontSize: 14,
@@ -475,7 +479,7 @@ class _MapPageState extends State<MapPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Fethedilen Alan',
+                            l10n.mapCompletedAreaLabel,
                             style: TextStyle(
                               color: theme.textSecondary,
                               fontSize: 12,
@@ -504,7 +508,7 @@ class _MapPageState extends State<MapPage> {
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
-                          '${provider.points.length} nokta',
+                          '${provider.points.length} ${l10n.mapPointsLabel}',
                           style: TextStyle(
                             color: theme.accent,
                             fontSize: 12,
@@ -527,7 +531,7 @@ class _MapPageState extends State<MapPage> {
                     fontWeight: FontWeight.w400,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Örn: Park Turu, Sahil Yürüyüşü...',
+                    hintText: l10n.mapNameHint,
                     hintStyle: TextStyle(
                       color: theme.textTertiary,
                       fontSize: 16,
@@ -554,7 +558,7 @@ class _MapPageState extends State<MapPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Lütfen bir isim girin';
+                      return l10n.mapNameRequired;
                     }
                     return null;
                   },
@@ -580,8 +584,8 @@ class _MapPageState extends State<MapPage> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        child: const Text(
-                          'İptal',
+                        child: Text(
+                          l10n.mapCancel,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -608,8 +612,8 @@ class _MapPageState extends State<MapPage> {
                           ),
                           elevation: 0,
                         ),
-                        child: const Text(
-                          'Tamamla',
+                        child: Text(
+                          l10n.mapConfirm,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w700,
@@ -630,11 +634,16 @@ class _MapPageState extends State<MapPage> {
     if (result != null) {
       final success = await provider.completePolygon(result);
       if (success && mounted) {
+        // Geçmiş listesini güncelle ki yeni poligon geçmişte görünsün
+        await Provider.of<HistoryProvider>(
+          context,
+          listen: false,
+        ).loadHistory();
         final theme = context.appTheme;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              'Poligon kaydedildi!',
+              l10n.mapSaved,
               style: TextStyle(color: theme.textPrimary, fontSize: 14),
             ),
             backgroundColor: theme.surface,
@@ -646,7 +655,7 @@ class _MapPageState extends State<MapPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-              provider.errorMessage ?? 'Bir hata oluştu',
+              provider.errorMessage ?? l10n.mapGenericError,
               style: TextStyle(color: theme.textPrimary, fontSize: 14),
             ),
             backgroundColor: theme.secondaryBackground,
@@ -659,6 +668,7 @@ class _MapPageState extends State<MapPage> {
 
   void _showCancelDialog(BuildContext context, MapProvider provider) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -698,7 +708,7 @@ class _MapPageState extends State<MapPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Takibi İptal Et',
+                          l10n.mapTrackingCancelTitle,
                           style: TextStyle(
                             color: theme.textPrimary,
                             fontSize: 20,
@@ -708,7 +718,7 @@ class _MapPageState extends State<MapPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Emin misiniz?',
+                          l10n.mapTrackingCancelQuestion,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 14,
@@ -743,7 +753,7 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Takibi iptal ederseniz, çizdiğiniz poligon kaydedilmeyecek ve tüm ilerleme silinecek.',
+                        l10n.mapTrackingCancelWarning,
                         style: TextStyle(
                           color: theme.textPrimary,
                           fontSize: 14,
@@ -782,7 +792,7 @@ class _MapPageState extends State<MapPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Nokta',
+                            AppLocalizations.of(context)!.mapPoint,
                             style: TextStyle(
                               color: theme.textSecondary,
                               fontSize: 12,
@@ -805,7 +815,7 @@ class _MapPageState extends State<MapPage> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Alan',
+                            AppLocalizations.of(context)!.mapArea,
                             style: TextStyle(
                               color: theme.textSecondary,
                               fontSize: 12,
@@ -833,8 +843,8 @@ class _MapPageState extends State<MapPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'Hayır',
+                      child: Text(
+                        l10n.mapNo,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -859,8 +869,8 @@ class _MapPageState extends State<MapPage> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Evet, İptal Et',
+                      child: Text(
+                        l10n.mapYesCancel,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -1035,7 +1045,7 @@ class _MapPageState extends State<MapPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              'Alan',
+                              AppLocalizations.of(context)!.mapArea,
                               style: TextStyle(
                                 color: theme.textSecondary,
                                 fontSize: 12,
@@ -1139,7 +1149,9 @@ class _MapPageState extends State<MapPage> {
                               ),
                             ),
                             child: Text(
-                              provider.isTracking ? 'DURDUR' : 'BAŞLA',
+                              provider.isTracking
+                                  ? AppLocalizations.of(context)!.mapStop
+                                  : AppLocalizations.of(context)!.startButton,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -1203,6 +1215,7 @@ class _MapPageState extends State<MapPage> {
 
   void _showCompletionSuggestion(MapProvider provider) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Row(
@@ -1211,7 +1224,7 @@ class _MapPageState extends State<MapPage> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                'Başlangıç noktasına yaklaştınız! Poligonu tamamlamak ister misiniz?',
+                l10n.mapCompletionSuggestion,
                 style: TextStyle(color: theme.textPrimary, fontSize: 14),
               ),
             ),
@@ -1221,7 +1234,7 @@ class _MapPageState extends State<MapPage> {
         duration: const Duration(seconds: 5),
         behavior: SnackBarBehavior.floating,
         action: SnackBarAction(
-          label: 'Tamamla',
+          label: l10n.mapCompletionAction,
           textColor: theme.accent,
           onPressed: () => _showCompleteDialog(provider),
         ),
@@ -1235,6 +1248,7 @@ class _MapPageState extends State<MapPage> {
     PolygonModel polygon,
   ) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
 
     showDialog(
       context: context,
@@ -1274,7 +1288,7 @@ class _MapPageState extends State<MapPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Poligonu Sil',
+                          l10n.mapDeleteTitle,
                           style: TextStyle(
                             color: theme.textPrimary,
                             fontSize: 20,
@@ -1284,7 +1298,7 @@ class _MapPageState extends State<MapPage> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Emin misiniz?',
+                          l10n.mapDeleteQuestion,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 14,
@@ -1322,7 +1336,7 @@ class _MapPageState extends State<MapPage> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Alan: ${_formatArea(polygon.area)}',
+                          '${l10n.historyAreaLabel}: ${_formatArea(polygon.area)}',
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 12,
@@ -1331,7 +1345,7 @@ class _MapPageState extends State<MapPage> {
                         ),
                         if (polygon.completedAt != null)
                           Text(
-                            'Tamamlandı: ${_formatDate(polygon.completedAt!)}',
+                            AppLocalizations.of(context)!.mapCompletedAt(_formatDate(polygon.completedAt!)),
                             style: TextStyle(
                               color: theme.textSecondary,
                               fontSize: 12,
@@ -1366,7 +1380,7 @@ class _MapPageState extends State<MapPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        'Bu işlem geri alınamaz. Poligon kalıcı olarak silinecek.',
+                        AppLocalizations.of(context)!.mapDeleteConfirmMessage,
                         style: TextStyle(
                           color: theme.textPrimary,
                           fontSize: 14,
@@ -1394,8 +1408,8 @@ class _MapPageState extends State<MapPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'İptal',
+                      child: Text(
+                        l10n.mapCancel,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -1418,7 +1432,7 @@ class _MapPageState extends State<MapPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    'Poligon silindi',
+                                    AppLocalizations.of(context)!.mapPolygonDeleted,
                                     style: TextStyle(color: theme.textPrimary, fontSize: 14),
                                   ),
                                   backgroundColor: theme.surface,
@@ -1429,7 +1443,7 @@ class _MapPageState extends State<MapPage> {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    provider.errorMessage ?? 'Bir hata oluştu',
+                                    provider.errorMessage ?? AppLocalizations.of(context)!.mapErrorOccurred,
                                     style: TextStyle(color: theme.textPrimary, fontSize: 14),
                                   ),
                                   backgroundColor: theme.secondaryBackground,
@@ -1449,8 +1463,8 @@ class _MapPageState extends State<MapPage> {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Sil',
+                      child: Text(
+                        l10n.mapDeleted,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,

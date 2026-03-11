@@ -1,5 +1,6 @@
 import '../../../../core/models/polygon_model.dart';
 import '../../../../core/services/database_service.dart';
+import '../../../../core/utils/calorie_estimator.dart';
 import '../../../../core/utils/geometry_utils.dart';
 
 class HistoryService {
@@ -181,7 +182,7 @@ class HistoryService {
   Future<double> getMaxArea() async {
     final polygons = await getHistory();
     if (polygons.isEmpty) return 0.0;
-    
+
     double maxArea = 0.0;
     for (final polygon in polygons) {
       if (polygon.area > maxArea) {
@@ -189,6 +190,51 @@ class HistoryService {
       }
     }
     return maxArea;
+  }
+
+  /// Tek günde koşulan en fazla mesafe (metre). Tüm zamanlar.
+  Future<double> getMaxDistanceInSingleDay() async {
+    final polygons = await getHistory();
+    final Map<DateTime, double> dayToDistance = {};
+    for (final p in polygons) {
+      if (p.completedAt == null) continue;
+      final day = DateTime(
+        p.completedAt!.year,
+        p.completedAt!.month,
+        p.completedAt!.day,
+      );
+      final dist = p.points.length >= 2
+          ? polygonPerimeterMeters(p.points)
+          : 0.0;
+      dayToDistance[day] = (dayToDistance[day] ?? 0) + dist;
+    }
+    if (dayToDistance.isEmpty) return 0.0;
+    return dayToDistance.values.reduce((a, b) => a > b ? a : b);
+  }
+
+  /// Geçen ay tamamlanan poligonlar (takvim ayı).
+  Future<List<PolygonModel>> getLastMonthPolygons() async {
+    final allPolygons = await getHistory();
+    final now = DateTime.now();
+    final lastMonthStart = now.month == 1
+        ? DateTime(now.year - 1, 12, 1)
+        : DateTime(now.year, now.month - 1, 1);
+    final lastMonthEnd = DateTime(now.year, now.month, 1);
+    return allPolygons.where((p) {
+      if (p.completedAt == null) return false;
+      return !p.completedAt!.isBefore(lastMonthStart) &&
+          p.completedAt!.isBefore(lastMonthEnd);
+    }).toList();
+  }
+
+  /// Geçen ay toplam mesafe (metre).
+  Future<double> getLastMonthDistance() async {
+    final polygons = await getLastMonthPolygons();
+    double total = 0.0;
+    for (final p in polygons) {
+      if (p.points.length >= 2) total += polygonPerimeterMeters(p.points);
+    }
+    return total;
   }
 
   /// Get maximum streak (highest streak ever achieved)
@@ -242,4 +288,97 @@ class HistoryService {
 
     return maxStreak;
   }
+
+  /// Son [lastDays] gün için günlük mesafe (metre). Key = gün (00:00:00), value = o günkü toplam mesafe.
+  /// Isı haritası için kullanılır.
+  Future<Map<DateTime, double>> getDailyDistanceForLastDays(
+    int lastDays,
+  ) async {
+    final polygons = await getHistory();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDate = today.subtract(Duration(days: lastDays - 1));
+    final Map<DateTime, double> dayToDistance = {};
+    for (final p in polygons) {
+      if (p.completedAt == null) continue;
+      final day = DateTime(
+        p.completedAt!.year,
+        p.completedAt!.month,
+        p.completedAt!.day,
+      );
+      if (day.isBefore(startDate)) continue;
+      final dist = p.points.length >= 2
+          ? polygonPerimeterMeters(p.points)
+          : 0.0;
+      dayToDistance[day] = (dayToDistance[day] ?? 0) + dist;
+    }
+    return dayToDistance;
+  }
+
+  /// Son [lastWeeks] hafta için haftalık toplam mesafe (m) ve poligon sayısı.
+  /// Hafta Pazartesi başlar. [weekStart] = o haftanın Pazartesi 00:00.
+  Future<List<({DateTime weekStart, double distanceM, int polygonCount})>>
+  getWeeklyTotalsForLastWeeks(int lastWeeks) async {
+    final polygons = await getHistory();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekday = now.weekday;
+    final mondayOffset = weekday - DateTime.monday;
+    final thisWeekStart = today.subtract(Duration(days: mondayOffset));
+    final List<({DateTime weekStart, double distanceM, int polygonCount})>
+    result = [];
+    for (var w = 0; w < lastWeeks; w++) {
+      final weekStart = thisWeekStart.subtract(Duration(days: 7 * w));
+      final weekEnd = weekStart.add(const Duration(days: 7));
+      double distanceM = 0.0;
+      int count = 0;
+      for (final p in polygons) {
+        if (p.completedAt == null) continue;
+        if (!p.completedAt!.isBefore(weekStart) &&
+            p.completedAt!.isBefore(weekEnd)) {
+          count++;
+          if (p.points.length >= 2) {
+            distanceM += polygonPerimeterMeters(p.points);
+          }
+        }
+      }
+      result.add((
+        weekStart: weekStart,
+        distanceM: distanceM,
+        polygonCount: count,
+      ));
+    }
+    return result;
+  }
+
+  /// Tüm tamamlanmış poligonlar için MET tabanlı toplam kalori (kcal).
+  ///
+  /// [weightKg] null ise [CalorieEstimator.defaultWeightKg] kullanılır.
+  Future<int> getTotalCalories({double? weightKg}) async {
+    final polygons = await getHistory();
+    var total = 0;
+    for (final p in polygons) {
+      total += CalorieEstimator.estimateForPolygon(
+        p,
+        weightKg: weightKg,
+      );
+    }
+    return total;
+  }
+
+  /// Bugün tamamlanan poligonlar için MET tabanlı toplam kalori (kcal).
+  ///
+  /// [weightKg] null ise [CalorieEstimator.defaultWeightKg] kullanılır.
+  Future<int> getTodayCalories({double? weightKg}) async {
+    final polygons = await getTodayPolygons();
+    var total = 0;
+    for (final p in polygons) {
+      total += CalorieEstimator.estimateForPolygon(
+        p,
+        weightKg: weightKg,
+      );
+    }
+    return total;
+  }
 }
+

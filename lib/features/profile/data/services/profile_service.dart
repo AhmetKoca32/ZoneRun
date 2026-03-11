@@ -1,12 +1,11 @@
-import '../../../../core/constants/calorie_constants.dart';
 import '../../../history/data/services/history_service.dart';
 
 class ProfileService {
   final HistoryService _historyService = HistoryService();
 
   /// Get user statistics (from SQLite polygon data).
-  /// [weightKg] optional; used for calorie estimate (formula: weight × distance_km × K).
-  /// If null, [CalorieConstants.defaultWeightKg] is used.
+  /// [weightKg] optional; used for calorie estimate (MET × weight × duration).
+  /// If null, MET tabanlı hesaplamada varsayılan kilo (70 kg) kullanılır.
   Future<Map<String, dynamic>> getUserStats({double? weightKg}) async {
     final totalArea = await _historyService.getTotalAreaConquered();
     final polygonCount = await _historyService.getPolygonCount();
@@ -17,16 +16,10 @@ class ProfileService {
     final maxArea = await _historyService.getMaxArea();
     final maxStreak = await _historyService.getMaxStreak();
 
-    final totalDistanceKm = totalDistance / 1000.0;
-    final todayDistanceKm = todayDistance / 1000.0;
-    final totalCalories = CalorieConstants.estimateCalories(
-      totalDistanceKm,
-      weightKg,
-    );
-    final todayCalories = CalorieConstants.estimateCalories(
-      todayDistanceKm,
-      weightKg,
-    );
+    final totalCalories =
+        await _historyService.getTotalCalories(weightKg: weightKg);
+    final todayCalories =
+        await _historyService.getTodayCalories(weightKg: weightKg);
 
     return {
       'totalArea': totalArea,

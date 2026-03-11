@@ -1,5 +1,8 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/services/firebase_service.dart';
 import '../../../history/data/services/history_service.dart';
 
 class HomeProvider extends ChangeNotifier {
@@ -14,13 +17,14 @@ class HomeProvider extends ChangeNotifier {
   }
 
   Map<String, dynamic>? _stats;
-  bool _isLoading = true;
+  bool _isLoading = false;
 
   Map<String, dynamic>? get stats => _stats;
   bool get isLoading => _isLoading;
 
   HomeProvider() {
-    _loadStats();
+    // İlk frame çizildikten sonra yükle; ana sayfa donmasın
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadStats());
   }
 
   /// Refresh stats from SQLite (e.g. after completing a polygon or returning to home)
@@ -33,6 +37,7 @@ class HomeProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final weightKg = await _loadCurrentUserWeight();
       final totalArea = await _historyService.getTotalAreaConquered();
       final polygonCount = await _historyService.getPolygonCount();
       final activePolygons = await _historyService.getActivePolygons();
@@ -41,11 +46,10 @@ class HomeProvider extends ChangeNotifier {
       final streak = await _historyService.getCurrentStreak();
       final maxArea = await _historyService.getMaxArea();
       final maxStreak = await _historyService.getMaxStreak();
-
-      final totalDistanceKm = totalDistance / 1000.0;
-      final totalCalories = (totalDistanceKm * 55).round();
-      final todayDistanceKm = todayDistance / 1000.0;
-      final todayCalories = (todayDistanceKm * 55).round();
+      final totalCalories =
+          await _historyService.getTotalCalories(weightKg: weightKg);
+      final todayCalories =
+          await _historyService.getTodayCalories(weightKg: weightKg);
 
       final averageArea =
           polygonCount > 0 ? totalArea / polygonCount : 0.0;
@@ -83,6 +87,22 @@ class HomeProvider extends ChangeNotifier {
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  /// Geçerli kullanıcı için (veya misafir profili için) kilo bilgisini okur.
+  ///
+  /// Kilo girilmemişse null döner; kalori hesabında bu durumda 70 kg varsayılır.
+  Future<double?> _loadCurrentUserWeight() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final uid = FirebaseService.auth.currentUser?.uid ?? 'guest';
+      return prefs.getDouble('weightKg_$uid');
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error loading weight for HomeProvider: $e');
+      }
+      return null;
     }
   }
 

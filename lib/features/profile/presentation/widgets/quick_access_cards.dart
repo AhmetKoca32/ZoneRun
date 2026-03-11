@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class QuickAccessCards extends StatelessWidget {
   final VoidCallback? onHelpCenterTap;
@@ -33,12 +34,12 @@ class QuickAccessCards extends StatelessWidget {
         children: [
           _QuickAccessItem(
             icon: Icons.headset_mic_outlined,
-            label: 'Yardım',
+            label: AppLocalizations.of(context)!.quickAccessHelp,
             onTap: onHelpCenterTap,
           ),
           _QuickAccessItem(
             icon: Icons.analytics_outlined,
-            label: 'İstatistikler',
+            label: AppLocalizations.of(context)!.quickAccessStatistics,
             onTap: onStatisticsTap,
           ),
           _ThemeItem(isDarkTheme: isDarkTheme, onTap: onThemeTap),
@@ -169,7 +170,9 @@ class _ThemeItemState extends State<_ThemeItem>
               key: ValueKey(widget.isDarkTheme),
               width: 70,
               child: Text(
-                widget.isDarkTheme ? 'Koyu Tema' : 'Açık Tema',
+                widget.isDarkTheme
+                    ? AppLocalizations.of(context)!.quickAccessThemeDark
+                    : AppLocalizations.of(context)!.quickAccessThemeLight,
                 style: AppTypography.bodySmall.copyWith(
                   color: theme.textPrimary,
                   fontSize: 10,

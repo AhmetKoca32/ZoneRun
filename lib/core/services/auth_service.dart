@@ -4,6 +4,14 @@ import 'package:google_sign_in/google_sign_in.dart';
 import '../../features/profile/data/services/firestore_user_service.dart';
 import 'firebase_service.dart';
 
+/// Auth error with a localizable code (message resolved in UI via AuthL10n).
+class AuthException implements Exception {
+  final String code;
+  AuthException(this.code);
+  @override
+  String toString() => code;
+}
+
 /// Authentication service for Email/Password and Google Sign-in
 class AuthService {
   FirebaseAuth? _auth;
@@ -44,9 +52,9 @@ class AuthService {
     required String userName,
   }) async {
     if (_auth == null) {
-      throw Exception('Firebase Auth not initialized');
+      throw Exception('Giriş sistemi hazır değil. Lütfen uygulamayı yeniden başlatın.');
     }
-    
+
     try {
       // Create user account
       final userCredential = await _auth!.createUserWithEmailAndPassword(
@@ -57,13 +65,18 @@ class AuthService {
       // Update display name
       await userCredential.user?.updateDisplayName(userName);
 
-      // Profil yerelde tutulur; ilk girişte ProfileProvider varsayılan oluşturur
+      // Firestore'da da kullanıcı dökümanı oluştur (profil senkronu için)
+      try {
+        await _firestoreUserService?.createUserProfile(userName: userName);
+      } catch (_) {
+        // Firestore başarısız olsa da kayıt tamamlandı; profil yerelde tutulur
+      }
 
       return userCredential;
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Error signing up: $e');
+      throw AuthException('authErrorSignUpFailed');
     }
   }
 
@@ -73,9 +86,9 @@ class AuthService {
     required String password,
   }) async {
     if (_auth == null) {
-      throw Exception('Firebase Auth not initialized');
+      throw AuthException('authErrorNotReady');
     }
-    
+
     try {
       return await _auth!.signInWithEmailAndPassword(
         email: email,
@@ -84,7 +97,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Error signing in: $e');
+      throw Exception('Giriş yapılırken beklenmeyen bir hata oluştu. Lütfen tekrar deneyin.');
     }
   }
 
@@ -93,15 +106,15 @@ class AuthService {
   /// Sign in with Google
   Future<UserCredential> signInWithGoogle() async {
     if (_auth == null) {
-      throw Exception('Firebase Auth not initialized');
+      throw AuthException('authErrorNotReady');
     }
-    
+
     try {
       // Trigger the authentication flow
       final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
 
       if (googleUser == null) {
-        throw Exception('Google sign-in was cancelled');
+        throw AuthException('authErrorGoogleCancelled');
       }
 
       // Obtain the auth details from the request
@@ -123,7 +136,7 @@ class AuthService {
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Error signing in with Google: $e');
+      throw Exception('Google ile giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin.');
     }
   }
 
@@ -132,15 +145,15 @@ class AuthService {
   /// Send password reset email
   Future<void> sendPasswordResetEmail(String email) async {
     if (_auth == null) {
-      throw Exception('Firebase Auth not initialized');
+      throw AuthException('authErrorNotReady');
     }
-    
+
     try {
       await _auth!.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       throw _handleAuthException(e);
     } catch (e) {
-      throw Exception('Error sending password reset email: $e');
+      throw AuthException('authErrorPasswordResetFailed');
     }
   }
 
@@ -156,33 +169,71 @@ class AuthService {
       futures.add(_googleSignIn.signOut());
       await Future.wait(futures);
     } catch (e) {
-      throw Exception('Error signing out: $e');
+      throw AuthException('authErrorSignOutFailed');
+    }
+  }
+
+  /// Hesabı kalıcı olarak sil (Firestore verisi + Auth). requires-recent-login hatası çıkarsa kullanıcı yeniden giriş yapmalı.
+  Future<void> deleteAccount() async {
+    if (_auth == null) {
+      throw AuthException('authErrorNotReady');
+    }
+    final user = _auth!.currentUser;
+    if (user == null) {
+      throw AuthException('authErrorSignInRequired');
+    }
+    try {
+      await _firestoreUserService?.deleteCurrentUserDocument();
+      await user.delete();
+      await signOut();
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (e) {
+      rethrow;
     }
   }
 
   // ==================== Helper Methods ====================
 
-  /// Handle Firebase Auth exceptions and return user-friendly messages
-  Exception _handleAuthException(FirebaseAuthException e) {
+  /// Maps Firebase Auth error codes to AuthException codes for UI localization.
+  AuthException _handleAuthException(FirebaseAuthException e) {
     switch (e.code) {
       case 'weak-password':
-        return Exception('Şifre çok zayıf. Daha güçlü bir şifre seçin.');
+        return AuthException('authErrorWeakPassword');
       case 'email-already-in-use':
-        return Exception('Bu e-posta adresi zaten kullanılıyor.');
+        return AuthException('authErrorEmailInUse');
       case 'invalid-email':
-        return Exception('Geçersiz e-posta adresi.');
+        return AuthException('authErrorInvalidEmail');
       case 'user-disabled':
-        return Exception('Bu kullanıcı hesabı devre dışı bırakılmış.');
+        return AuthException('authErrorUserDisabled');
       case 'user-not-found':
-        return Exception('Kullanıcı bulunamadı.');
+        return AuthException('authErrorUserNotFound');
       case 'wrong-password':
-        return Exception('Yanlış şifre.');
+        return AuthException('authErrorWrongPassword');
+      case 'invalid-credential':
+      case 'invalid-email-or-password':
+        return AuthException('authErrorInvalidCredential');
       case 'too-many-requests':
-        return Exception('Çok fazla deneme. Lütfen daha sonra tekrar deneyin.');
+        return AuthException('authErrorTooManyRequests');
       case 'operation-not-allowed':
-        return Exception('Bu işlem izin verilmiyor.');
+        return AuthException('authErrorOperationNotAllowed');
+      case 'requires-recent-login':
+        return AuthException('authErrorRequiresRecentLogin');
+      case 'network-request-failed':
+        return AuthException('authErrorNetworkFailed');
+      case 'expired-action-code':
+        return AuthException('authErrorExpiredActionCode');
+      case 'invalid-action-code':
+        return AuthException('authErrorInvalidActionCode');
+      case 'popup-closed-by-user':
+      case 'cancelled-popup-request':
+        return AuthException('authErrorPopupClosed');
+      case 'popup-blocked':
+        return AuthException('authErrorPopupBlocked');
+      case 'account-exists-with-different-credential':
+        return AuthException('authErrorAccountExistsDifferentCredential');
       default:
-        return Exception('Bir hata oluştu: ${e.message}');
+        return AuthException('authErrorGeneric');
     }
   }
 }

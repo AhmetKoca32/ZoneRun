@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/models/polygon_model.dart';
 import '../../../../core/navigation/main_navigation.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/app_localizations_extra.dart';
 import '../../../map/presentation/providers/map_provider.dart';
 import '../providers/history_provider.dart';
 
@@ -23,35 +25,41 @@ class HistoryPage extends StatelessWidget {
     }
   }
 
-  String _getTimeAgo(DateTime date) {
+  String _getTimeAgo(BuildContext context, DateTime date) {
+    final l10n = AppLocalizations.of(context)!;
     final now = DateTime.now();
     final difference = now.difference(date);
-    
+
     if (difference.inDays == 0) {
       if (difference.inHours == 0) {
         if (difference.inMinutes == 0) {
-          return 'Az önce';
+          return l10n.historyJustNow;
         }
-        return '${difference.inMinutes} dakika önce';
+        return l10n.historyMinutesAgo(difference.inMinutes);
       }
-      return '${difference.inHours} saat önce';
+      return l10n.historyHoursAgo(difference.inHours);
     } else if (difference.inDays == 1) {
-      return 'Dün';
+      return l10n.historyYesterday;
     } else if (difference.inDays < 7) {
-      return '${difference.inDays} gün önce';
+      return l10n.historyDaysAgo(difference.inDays);
     } else if (difference.inDays < 30) {
       final weeks = (difference.inDays / 7).floor();
-      return '$weeks hafta önce';
+      return l10n.historyWeeksAgo(weeks);
     } else if (difference.inDays < 365) {
       final months = (difference.inDays / 30).floor();
-      return '$months ay önce';
+      return l10n.historyMonthsAgo(months);
     } else {
       final years = (difference.inDays / 365).floor();
-      return '$years yıl önce';
+      return l10n.historyYearsAgo(years);
     }
   }
 
-  // Group polygons by date
+  static const _keyToday = 'today';
+  static const _keyThisWeek = 'this_week';
+  static const _keyThisMonth = 'this_month';
+  static const _keyThisYear = 'this_year';
+  static const _keyOlder = 'older';
+
   Map<String, List<PolygonModel>> _groupPolygonsByDate(List<PolygonModel> polygons) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -60,16 +68,16 @@ class HistoryPage extends StatelessWidget {
     final thisYearStart = DateTime(now.year, 1, 1);
 
     final Map<String, List<PolygonModel>> grouped = {
-      'Bugün': [],
-      'Bu Hafta': [],
-      'Bu Ay': [],
-      'Bu Yıl': [],
-      'Daha Eski': [],
+      _keyToday: [],
+      _keyThisWeek: [],
+      _keyThisMonth: [],
+      _keyThisYear: [],
+      _keyOlder: [],
     };
 
     for (final polygon in polygons) {
       if (polygon.completedAt == null) continue;
-      
+
       final completedDate = DateTime(
         polygon.completedAt!.year,
         polygon.completedAt!.month,
@@ -77,25 +85,43 @@ class HistoryPage extends StatelessWidget {
       );
 
       if (completedDate == today) {
-        grouped['Bugün']!.add(polygon);
+        grouped[_keyToday]!.add(polygon);
       } else if (completedDate.isAfter(thisWeekStart.subtract(const Duration(days: 1)))) {
-        grouped['Bu Hafta']!.add(polygon);
+        grouped[_keyThisWeek]!.add(polygon);
       } else if (completedDate.isAfter(thisMonthStart.subtract(const Duration(days: 1)))) {
-        grouped['Bu Ay']!.add(polygon);
+        grouped[_keyThisMonth]!.add(polygon);
       } else if (completedDate.isAfter(thisYearStart.subtract(const Duration(days: 1)))) {
-        grouped['Bu Yıl']!.add(polygon);
+        grouped[_keyThisYear]!.add(polygon);
       } else {
-        grouped['Daha Eski']!.add(polygon);
+        grouped[_keyOlder]!.add(polygon);
       }
     }
 
-    // Remove empty groups
     grouped.removeWhere((key, value) => value.isEmpty);
     return grouped;
   }
 
+  String _getGroupTitle(BuildContext context, String key) {
+    final l10n = AppLocalizations.of(context)!;
+    switch (key) {
+      case _keyToday:
+        return l10n.historyToday;
+      case _keyThisWeek:
+        return l10n.historyThisWeek;
+      case _keyThisMonth:
+        return l10n.historyThisMonth;
+      case _keyThisYear:
+        return l10n.historyThisYear;
+      case _keyOlder:
+        return l10n.historyOlder;
+      default:
+        return key;
+    }
+  }
+
   void _showPolygonOnMap(BuildContext context, PolygonModel polygon) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     // Get MainNavigation callback before showing dialog
     final mainNav = MainNavigationInherited.of(context);
     
@@ -137,7 +163,7 @@ class HistoryPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Haritada Göster',
+                          l10n.historyShowOnMapTitle,
                           style: TextStyle(
                             color: theme.textPrimary,
                             fontSize: 20,
@@ -147,7 +173,7 @@ class HistoryPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Bu poligonu haritada görmek ister misiniz?',
+                          l10n.historyShowOnMapQuestion,
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 14,
@@ -183,7 +209,7 @@ class HistoryPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'Alan: ${_formatArea(polygon.area)}',
+                          '${l10n.historyAreaLabel}: ${_formatArea(polygon.area)}',
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 12,
@@ -191,7 +217,7 @@ class HistoryPage extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${polygon.points.length} nokta',
+                          '${polygon.points.length} ${l10n.historyPointsLabel}',
                           style: TextStyle(
                             color: theme.textSecondary,
                             fontSize: 12,
@@ -217,8 +243,8 @@ class HistoryPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      child: const Text(
-                        'İptal',
+                      child: Text(
+                        l10n.historyCancel,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -250,8 +276,8 @@ class HistoryPage extends StatelessWidget {
                         ),
                         elevation: 0,
                       ),
-                      child: const Text(
-                        'Haritaya Git',
+                      child: Text(
+                        l10n.historyGoToMap,
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -274,6 +300,7 @@ class HistoryPage extends StatelessWidget {
     HistoryProvider provider,
   ) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     return Dismissible(
       key: Key('polygon_${polygon.id}'),
       direction: DismissDirection.endToStart,
@@ -331,7 +358,7 @@ class HistoryPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Poligonu Sil',
+                              l10n.historyDeleteTitle,
                               style: TextStyle(
                                 color: theme.textPrimary,
                                 fontSize: 20,
@@ -341,7 +368,7 @@ class HistoryPage extends StatelessWidget {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              'Emin misiniz?',
+                              l10n.historyDeleteQuestion,
                               style: TextStyle(
                                 color: theme.textSecondary,
                                 fontSize: 14,
@@ -384,8 +411,8 @@ class HistoryPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          child: const Text(
-                            'İptal',
+                          child: Text(
+                            l10n.historyCancel,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
@@ -406,8 +433,8 @@ class HistoryPage extends StatelessWidget {
                             ),
                             elevation: 0,
                           ),
-                          child: const Text(
-                            'Sil',
+                          child: Text(
+                            l10n.mapDeleted,
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
@@ -434,7 +461,7 @@ class HistoryPage extends StatelessWidget {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Text(
-                    'Poligon silindi',
+                    l10n.historyDeleted,
                     style: TextStyle(color: theme.textPrimary, fontSize: 14),
                   ),
                   backgroundColor: theme.surface,
@@ -538,7 +565,7 @@ class HistoryPage extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    _getTimeAgo(polygon.completedAt!),
+                                    _getTimeAgo(context, polygon.completedAt!),
                                     style: TextStyle(
                                       color: theme.textTertiary,
                                       fontSize: 12,
@@ -561,7 +588,7 @@ class HistoryPage extends StatelessWidget {
                         ),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(),
-                        tooltip: 'Haritada göster',
+                        tooltip: l10n.historyShowOnMap,
                       ),
                     ],
                   ),
@@ -589,8 +616,8 @@ class HistoryPage extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      'Alan',
+                            Text(
+                              l10n.historyAreaLabel,
                                       style: TextStyle(
                                         color: theme.textTertiary,
                                         fontSize: 11,
@@ -633,7 +660,7 @@ class HistoryPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Nokta',
+                                  l10n.historyPointsLabel,
                                   style: TextStyle(
                                     color: theme.textTertiary,
                                     fontSize: 11,
@@ -674,6 +701,7 @@ class HistoryPage extends StatelessWidget {
       backgroundColor: theme.primaryBackground,
       body: Consumer<HistoryProvider>(
         builder: (context, provider, child) {
+          final l10n = AppLocalizations.of(context)!;
           if (provider.isLoading) {
             return Center(
               child: CircularProgressIndicator(
@@ -720,8 +748,8 @@ class HistoryPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Yeniden Dene',
+                    child: Text(
+                      l10n.historyRetry,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -752,7 +780,7 @@ class HistoryPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   Text(
-                    'Henüz poligon yok',
+                    l10n.historyNoPolygonsYet,
                     style: TextStyle(
                       color: theme.textPrimary,
                       fontSize: 20,
@@ -762,7 +790,7 @@ class HistoryPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Haritada poligon çizerek başlayın',
+                    l10n.historyEmptyHint,
                     style: TextStyle(
                       color: theme.textTertiary,
                       fontSize: 14,
@@ -825,7 +853,7 @@ class HistoryPage extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                groupName,
+                                _getGroupTitle(context, groupName),
                                 style: TextStyle(
                                   color: theme.textSecondary,
                                   fontSize: 14,

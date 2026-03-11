@@ -10,12 +10,19 @@ import '../../data/services/map_service.dart';
 class MapProvider extends ChangeNotifier {
   final MapService _mapService = MapService();
 
+  /// Ortalama hız için üst sınır (km/s). Bunun üzeri araç kullanımı olarak kabul edilir.
+  static const double _maxValidAverageSpeedKmh = 15.0;
+
+  /// Hız hesabı için minimum süre (sn) – çok kısa kayıtların hızını şişirmemek için.
+  static const int _minDurationSecondsForSpeedCheck = 60;
+
   // State
   bool _isTracking = false;
   List<LatLng> _points = [];
   double _currentArea = 0.0;
   LatLng? _currentLocation;
   LatLng? _lastAddedPoint;
+  DateTime? _trackingStart;
   StreamSubscription<LatLng>? _locationSubscription;
   bool _canComplete = false;
   String? _errorMessage;
@@ -61,14 +68,15 @@ class MapProvider extends ChangeNotifier {
     _canComplete = false;
     _errorMessage = null;
     _isTracking = true;
+    _trackingStart = DateTime.now();
 
     // Start location stream
     final locationStream = _mapService.startTracking();
     if (locationStream != null) {
       _locationSubscription = locationStream.listen(
         (location) => _handleLocationUpdate(location),
-        onError: (error) {
-          _errorMessage = 'Konum hatası: $error';
+        onError: (_) {
+          _errorMessage = 'Konum alınırken hata oluştu. Lütfen tekrar deneyin.';
           notifyListeners();
         },
       );
@@ -85,6 +93,7 @@ class MapProvider extends ChangeNotifier {
     _isTracking = false;
     _locationSubscription?.cancel();
     _locationSubscription = null;
+    _trackingStart = null;
 
     notifyListeners();
   }
@@ -168,16 +177,52 @@ class MapProvider extends ChangeNotifier {
     }
 
     try {
+      // Hız kontrolü: ortalama hız 15 km/s üzerindeyse poligonu geçersiz say
+      final now = DateTime.now();
+      if (_trackingStart != null && _points.length >= 2) {
+        final rawSeconds = now.difference(_trackingStart!).inSeconds;
+        final durationSeconds =
+            rawSeconds < _minDurationSecondsForSpeedCheck
+                ? _minDurationSecondsForSpeedCheck
+                : rawSeconds;
+
+        double distanceM = 0.0;
+        for (var i = 1; i < _points.length; i++) {
+          distanceM += _calculateDistance(_points[i - 1], _points[i]);
+        }
+
+        final distanceKm = distanceM / 1000.0;
+        if (distanceKm > 0 && durationSeconds > 0) {
+          final durationHours = durationSeconds / 3600.0;
+          final speedKmh = distanceKm / durationHours;
+          if (speedKmh.isFinite && speedKmh > _maxValidAverageSpeedKmh) {
+            _errorMessage =
+                'Ortalama hızınız ${speedKmh.toStringAsFixed(1)} km/s. '
+                'Bu aktivite araçla yapılmış olabilir, bu yüzden alan fethedilmedi.';
+
+            // Takibi sonlandır ve state'i sıfırla
+            stopTracking();
+            _points = [];
+            _currentArea = 0.0;
+            _canComplete = false;
+
+            notifyListeners();
+            return false;
+          }
+        }
+      }
+
       // Close polygon by adding first point at the end if not already closed
       if (_points.first.latitude != _points.last.latitude ||
           _points.first.longitude != _points.last.longitude) {
         _points.add(_points.first);
       }
 
-      // Save to database
+      // Save to database (oluşum başlangıç zamanı ile)
       final polygonId = await _mapService.savePolygon(
         name: name,
         points: _points,
+        startedAt: _trackingStart,
       );
 
       // Mark as completed
@@ -195,8 +240,8 @@ class MapProvider extends ChangeNotifier {
 
       notifyListeners();
       return true;
-    } catch (e) {
-      _errorMessage = 'Kayıt hatası: $e';
+    } catch (_) {
+      _errorMessage = 'Bölge kaydedilemedi. Lütfen tekrar deneyin.';
       notifyListeners();
       return false;
     }
@@ -249,8 +294,8 @@ class MapProvider extends ChangeNotifier {
 
       // Load saved polygons in background (non-blocking)
       loadSavedPolygons();
-    } catch (e) {
-      _errorMessage = 'Başlatma hatası: $e';
+    } catch (_) {
+      _errorMessage = 'Harita başlatılamadı. Lütfen tekrar deneyin.';
       notifyListeners();
     }
   }
@@ -277,8 +322,8 @@ class MapProvider extends ChangeNotifier {
     try {
       _savedPolygons = await _mapService.getCompletedPolygons();
       notifyListeners();
-    } catch (e) {
-      _errorMessage = 'Polygonlar yüklenemedi: $e';
+    } catch (_) {
+      _errorMessage = 'Kayıtlı bölgeler yüklenemedi. Lütfen tekrar deneyin.';
       notifyListeners();
     }
   }
@@ -290,8 +335,8 @@ class MapProvider extends ChangeNotifier {
       // Reload polygons to update the list
       await loadSavedPolygons();
       return true;
-    } catch (e) {
-      _errorMessage = 'Polygon silinemedi: $e';
+    } catch (_) {
+      _errorMessage = 'Bölge silinemedi. Lütfen tekrar deneyin.';
       notifyListeners();
       return false;
     }

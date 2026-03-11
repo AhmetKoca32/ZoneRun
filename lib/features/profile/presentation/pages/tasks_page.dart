@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/reward_constants.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/models/task_model.dart';
-import '../../data/services/task_definitions.dart';
+import '../helpers/task_l10n_helper.dart';
 import '../../data/services/tasks_service.dart';
 import '../providers/profile_provider.dart';
 
@@ -89,7 +89,7 @@ class _TasksPageState extends State<TasksPage> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Görevler',
+          AppLocalizations.of(context)!.tasksPageTitle,
           style: AppTypography.headlineSmall.copyWith(
             color: theme.textPrimary,
             fontWeight: AppTypography.bold,
@@ -106,9 +106,10 @@ class _TasksPageState extends State<TasksPage> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
                 children: [
                   _buildSection(
+                    context,
                     theme,
-                    'Tek Seferlik Görevler',
-                    'Avatar ve banner ödüllerini aç',
+                    AppLocalizations.of(context)!.tasksSectionOneTime,
+                    AppLocalizations.of(context)!.tasksSectionOneTimeSubtitle,
                     _progress!
                         .where(
                           (p) =>
@@ -119,9 +120,10 @@ class _TasksPageState extends State<TasksPage> {
                   ),
                   const SizedBox(height: 24),
                   _buildSection(
+                    context,
                     theme,
-                    'Günlük / Haftalık / Aylık',
-                    'Sıfat ödüllerini kazan',
+                    AppLocalizations.of(context)!.tasksSectionRecurring,
+                    AppLocalizations.of(context)!.tasksSectionRecurringSubtitle,
                     _progress!
                         .where(
                           (p) =>
@@ -130,26 +132,6 @@ class _TasksPageState extends State<TasksPage> {
                         )
                         .toList(),
                   ),
-                  if (kDebugMode) ...[
-                    const SizedBox(height: 24),
-                    Center(
-                      child: TextButton(
-                        onPressed: () async {
-                          await context
-                              .read<ProfileProvider>()
-                              .unlockTitleForTesting('daily_runner');
-                          if (mounted) _loadProgress();
-                        },
-                        child: Text(
-                          'Test: "Günün Koşucusu" kilidini aç',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: theme.textSecondary,
-                            decoration: TextDecoration.underline,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
                 ],
               ),
             ),
@@ -157,6 +139,7 @@ class _TasksPageState extends State<TasksPage> {
   }
 
   Widget _buildSection(
+    BuildContext context,
     dynamic theme,
     String title,
     String subtitle,
@@ -182,7 +165,7 @@ class _TasksPageState extends State<TasksPage> {
           ),
         ),
         const SizedBox(height: 12),
-        ...items.map((p) => _TaskCard(progress: p)),
+        ...items.map((p) => _TaskCard(progress: p, key: ValueKey(p.definition.id))),
       ],
     );
   }
@@ -191,12 +174,32 @@ class _TasksPageState extends State<TasksPage> {
 class _TaskCard extends StatelessWidget {
   final TaskProgress progress;
 
-  const _TaskCard({required this.progress});
+  const _TaskCard({super.key, required this.progress});
+
+  static String _rewardLabel(BuildContext context, String rewardType, String rewardId) {
+    final l10n = AppLocalizations.of(context)!;
+    if (rewardType == RewardConstants.rewardTypeAvatar) {
+      return l10n.tasksRewardPremiumAvatar;
+    }
+    if (rewardType == RewardConstants.rewardTypeBanner) {
+      return l10n.tasksRewardBannerId(rewardId);
+    }
+    if (rewardType == RewardConstants.rewardTypeTitle) {
+      return TaskL10nHelper.getTitleLabel(l10n, rewardId);
+    }
+    if (rewardType == RewardConstants.rewardTypeAccessory) {
+      final id = int.tryParse(rewardId);
+      return id != null ? TaskL10nHelper.getOverlayLabel(l10n, id) : rewardId;
+    }
+    return rewardId;
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
     final def = progress.definition;
+    final l10n = AppLocalizations.of(context)!;
+    final localized = TaskL10nHelper.getTaskTitleDescription(l10n, def.id);
     final isDone = progress.completed && progress.rewardClaimed;
     final isCompleteNotClaimed = progress.completed && !progress.rewardClaimed;
 
@@ -239,16 +242,16 @@ class _TaskCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      def.title,
+                      localized.title,
                       style: AppTypography.bodyLarge.copyWith(
                         color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
                       ),
                     ),
-                    if (def.description != null) ...[
+                    if (localized.description.isNotEmpty) ...[
                       const SizedBox(height: 2),
                       Text(
-                        def.description!,
+                        localized.description,
                         style: AppTypography.bodySmall.copyWith(
                           color: theme.textSecondary,
                           fontSize: 12,
@@ -269,7 +272,7 @@ class _TaskCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'Ödül hazır',
+                    AppLocalizations.of(context)!.tasksRewardReady,
                     style: AppTypography.bodySmall.copyWith(
                       color: theme.accent,
                       fontWeight: AppTypography.semiBold,
@@ -294,7 +297,7 @@ class _TaskCard extends StatelessWidget {
                 Icon(Icons.card_giftcard, size: 16, color: theme.accent),
                 const SizedBox(width: 6),
                 Text(
-                  TaskDefinitions.rewardLabel(def.rewardType, def.rewardId),
+                  _rewardLabel(context, def.rewardType, def.rewardId),
                   style: AppTypography.bodySmall.copyWith(
                     color: theme.textPrimary,
                     fontWeight: AppTypography.semiBold,

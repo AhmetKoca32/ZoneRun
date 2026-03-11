@@ -7,7 +7,9 @@ import '../../../../core/constants/overlay_constants.dart';
 import '../../../../core/constants/reward_constants.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/services/task_definitions.dart';
+import '../helpers/task_l10n_helper.dart';
 import '../providers/profile_provider.dart';
 
 class RewardsPage extends StatefulWidget {
@@ -25,35 +27,18 @@ class _RewardsPageState extends State<RewardsPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
+    // Görev tamamlandıysa ödülü hemen aç (Görevler sayfasına girmeden de güncel listeyi göster)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      _precacheAvatarImages();
+      Provider.of<ProfileProvider>(
+        context,
+        listen: false,
+      ).claimCompletedRewardsIfAny();
     });
   }
 
-  void _precacheAvatarImages() {
-    const size = 128;
-    final defaultCount = RewardConstants.defaultAvatarCount;
-    final premiumCount = RewardConstants.premiumAvatarCount;
-    final premiumStart = RewardConstants.premiumAvatarStartId;
-    for (var i = 0; i < defaultCount; i++) {
-      final path = AppConstants.avatarAssetPath(i);
-      precacheImage(
-        ResizeImage.resizeIfNeeded(size, size, AssetImage(path)),
-        context,
-      );
-    }
-    Future.delayed(const Duration(milliseconds: 80), () {
-      if (!mounted) return;
-      for (var i = 0; i < premiumCount; i++) {
-        final path = AppConstants.avatarAssetPath(premiumStart + i);
-        precacheImage(
-          ResizeImage.resizeIfNeeded(size, size, AssetImage(path)),
-          context,
-        );
-      }
-    });
-  }
+  static const int _bannerCacheWidth = 256;
+  static const int _bannerCacheHeight = 160;
 
   @override
   void dispose() {
@@ -75,7 +60,7 @@ class _RewardsPageState extends State<RewardsPage>
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Ödüller',
+          AppLocalizations.of(context)!.rewardsPageTitle,
           style: AppTypography.headlineSmall.copyWith(
             color: theme.textPrimary,
             fontWeight: AppTypography.bold,
@@ -93,11 +78,11 @@ class _RewardsPageState extends State<RewardsPage>
           labelStyle: AppTypography.bodyMedium.copyWith(
             fontWeight: AppTypography.semiBold,
           ),
-          tabs: const [
-            Tab(text: 'Avatarlar'),
-            Tab(text: 'Bannerlar'),
-            Tab(text: 'Sıfatlar'),
-            Tab(text: 'Aksesuarlar'),
+          tabs: [
+            Tab(text: AppLocalizations.of(context)!.rewardsTabAvatars),
+            Tab(text: AppLocalizations.of(context)!.rewardsTabBanners),
+            Tab(text: AppLocalizations.of(context)!.rewardsTabTitles),
+            Tab(text: AppLocalizations.of(context)!.rewardsTabAccessories),
           ],
         ),
       ),
@@ -162,7 +147,7 @@ class _AccessoriesTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         Text(
-          'Avatar üzerinde gösterilecek aksesuarı seçin. Görevle açılanlar kullanılabilir.',
+          AppLocalizations.of(context)!.rewardsAccessoriesDescription,
           style: AppTypography.bodySmall.copyWith(color: theme.textSecondary),
         ),
         const SizedBox(height: 16),
@@ -177,6 +162,7 @@ class _AccessoriesTab extends StatelessWidget {
           ),
           itemCount: ids.length,
           itemBuilder: (context, i) {
+            final l10n = AppLocalizations.of(context)!;
             final id = ids[i];
             // 0 = Yok (seçimi temizler); 1..5 = toggle ile birden fazla seçilebilir
             final isUnlocked = id == 0 || unlockedAccessoryIds.contains(id);
@@ -186,7 +172,7 @@ class _AccessoriesTab extends StatelessWidget {
             final assetPath = id == 0
                 ? null
                 : OverlayConstants.overlayAssetPath(id);
-            final label = id == 0 ? 'Yok' : OverlayConstants.overlayLabel(id);
+            final label = TaskL10nHelper.getOverlayLabel(l10n, id);
             final task = id == 0
                 ? null
                 : TaskDefinitions.getTaskForReward(
@@ -195,7 +181,7 @@ class _AccessoriesTab extends StatelessWidget {
                   );
             final unlockHint = task == null
                 ? null
-                : '${task.title}: ${TaskDefinitions.targetShortText(task.target)}';
+                : '${TaskL10nHelper.getTaskTitle(l10n, task.id)}: ${TaskL10nHelper.getTargetShortText(l10n, task.target)}';
             return RepaintBoundary(
               child: _AccessoryTile(
                 accessoryId: id,
@@ -362,7 +348,7 @@ class _AvatarsTabState extends State<_AvatarsTab> {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         Text(
-          'Varsayılan avatarlar',
+          AppLocalizations.of(context)!.rewardsDefaultAvatars,
           style: AppTypography.bodyMedium.copyWith(
             color: theme.textSecondary,
             fontWeight: AppTypography.semiBold,
@@ -395,7 +381,7 @@ class _AvatarsTabState extends State<_AvatarsTab> {
         if (premiumCount > 0 && _showPremium) ...[
           const SizedBox(height: 24),
           Text(
-            'Premium avatarlar (görevle aç)',
+            AppLocalizations.of(context)!.rewardsPremiumAvatars,
             style: AppTypography.bodyMedium.copyWith(
               color: theme.textSecondary,
               fontWeight: AppTypography.semiBold,
@@ -420,9 +406,10 @@ class _AvatarsTabState extends State<_AvatarsTab> {
                 RewardConstants.rewardTypeAvatar,
                 index.toString(),
               );
+              final l10n = AppLocalizations.of(context)!;
               final unlockHint = task == null
                   ? null
-                  : '${task.title}: ${TaskDefinitions.targetShortText(task.target)}';
+                  : '${TaskL10nHelper.getTaskTitle(l10n, task.id)}: ${TaskL10nHelper.getTargetShortText(l10n, task.target)}';
               return RepaintBoundary(
                 child: _AvatarTile(
                   index: index,
@@ -565,7 +552,7 @@ class _BannersTab extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         Text(
-          'Banner arka planı seçin. Varsayılan ve kazandığınız bannerlar görünür.',
+          AppLocalizations.of(context)!.rewardsBannerSelectDescription,
           style: AppTypography.bodySmall.copyWith(color: theme.textSecondary),
         ),
         const SizedBox(height: 16),
@@ -588,13 +575,14 @@ class _BannersTab extends StatelessWidget {
                     RewardConstants.rewardTypeBanner,
                     id.toString(),
                   );
+            final l10n = AppLocalizations.of(context)!;
             final unlockHint = task == null
                 ? null
-                : '${task.title}: ${TaskDefinitions.targetShortText(task.target)}';
+                : '${TaskL10nHelper.getTaskTitle(l10n, task.id)}: ${TaskL10nHelper.getTargetShortText(l10n, task.target)}';
             return RepaintBoundary(
               child: _BannerTile(
                 bannerId: id,
-                label: BannerConstants.label(id),
+                label: TaskL10nHelper.getBannerLabel(l10n, id),
                 isSelected: isSelected,
                 isUnlocked: isUnlocked,
                 unlockHint: unlockHint,
@@ -638,18 +626,24 @@ class _BannerTile extends StatelessWidget {
           theme.secondaryBackground.withOpacity(0.7),
         ];
     final path = BannerConstants.imagePath(bannerId);
-    final bgColors = isUnlocked
-        ? colors
-        : [theme.secondaryBackground, theme.secondaryBackground];
     final gradientBox = Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: bgColors,
+          colors: colors,
         ),
       ),
     );
+    final background = path != null
+        ? Image.asset(
+            path,
+            fit: BoxFit.cover,
+            cacheWidth: _RewardsPageState._bannerCacheWidth,
+            cacheHeight: _RewardsPageState._bannerCacheHeight,
+            errorBuilder: (_, __, ___) => gradientBox,
+          )
+        : gradientBox;
 
     return GestureDetector(
       onTap: onTap,
@@ -671,15 +665,44 @@ class _BannerTile extends StatelessWidget {
           child: Stack(
             fit: StackFit.expand,
             children: [
-              Positioned.fill(
-                child: path != null && isUnlocked
-                    ? Image.asset(
-                        path,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => gradientBox,
-                      )
-                    : gradientBox,
-              ),
+              Positioned.fill(child: background),
+              if (!isUnlocked)
+                Positioned.fill(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Container(
+                      color: theme.primaryBackground.withOpacity(0.75),
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.lock,
+                                color: theme.textSecondary,
+                                size: 40,
+                              ),
+                              if (unlockHint != null) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  unlockHint!,
+                                  style: AppTypography.labelSmall.copyWith(
+                                    color: theme.textSecondary,
+                                    fontSize: 11,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
               if (isUnlocked)
                 Positioned(
                   left: 8,
@@ -694,31 +717,6 @@ class _BannerTile extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                  ),
-                ),
-              if (!isUnlocked)
-                Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.lock, color: theme.textSecondary, size: 40),
-                        if (unlockHint != null) ...[
-                          const SizedBox(height: 8),
-                          Text(
-                            unlockHint!,
-                            style: AppTypography.labelSmall.copyWith(
-                              color: theme.textSecondary,
-                              fontSize: 11,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ],
-                    ),
                   ),
                 ),
               if (isSelected)
@@ -753,19 +751,20 @@ class _TitlesTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    final entries = RewardConstants.titleLabels.entries.toList();
+    final l10n = AppLocalizations.of(context)!;
+    final entries = RewardConstants.titleLabels.keys.map((id) => (id: id, label: TaskL10nHelper.getTitleLabel(l10n, id))).toList();
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
       children: [
         Text(
-          'Banner\'da isminizin altında görünecek sıfatı seçin. Görevlerle yeni sıfatlar kazanın.',
+          l10n.rewardsTitlesDescription,
           style: AppTypography.bodySmall.copyWith(color: theme.textSecondary),
         ),
         const SizedBox(height: 16),
         ListTile(
           title: Text(
-            'Sıfat yok',
+            l10n.rewardsNoTitle,
             style: AppTypography.bodyLarge.copyWith(
               color: theme.textPrimary,
               fontWeight: AppTypography.medium,
@@ -778,8 +777,8 @@ class _TitlesTab extends StatelessWidget {
         ),
         const Divider(height: 1),
         ...entries.map((e) {
-          final id = e.key;
-          final label = e.value;
+          final id = e.id;
+          final label = e.label;
           final isUnlocked = unlockedTitleIds.contains(id);
           final isSelected = selectedTitleId == id;
           final task = TaskDefinitions.getTaskForReward(
@@ -788,7 +787,10 @@ class _TitlesTab extends StatelessWidget {
           );
           final unlockHint = task == null
               ? null
-              : 'Açmak için: ${task.title} (${TaskDefinitions.targetShortText(task.target)})';
+              : l10n.rewardsToUnlock(
+                  TaskL10nHelper.getTaskTitle(l10n, task.id),
+                  TaskL10nHelper.getTargetShortText(l10n, task.target),
+                );
           return ListTile(
             title: Text(
               label,

@@ -1,21 +1,39 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users collection
+
+    // Yardımcı fonksiyon: kullanıcı giriş yapmış mı?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // ===== users koleksiyonu =====
+    // Path: users/{userId}
+    // Doküman ID = Firebase Auth uid
     match /users/{userId} {
-      // User can read/write their own profile
-      allow read, write: if request.auth != null && request.auth.uid == userId;
-      
-      // Purchases subcollection
-      match /purchases/{purchaseId} {
-        allow read: if request.auth != null && request.auth.uid == userId;
-        allow write: if false; // Only backend (Functions) can write
-      }
-      
-      // Settings subcollection
-      match /settings/{settingId} {
-        allow read, write: if request.auth != null && request.auth.uid == userId;
-      }
+      // Sadece giriş yapmış kullanıcılar kendi user dokümanını okuyup yazabilsin
+      allow read, update, delete: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ===== users/{userId}/settings alt koleksiyonu =====
+    // Path: users/{userId}/settings/{settingId}
+    match /users/{userId}/settings/{settingId} {
+      // Sadece kendi path’i altındaki ayarları okuyup yazabilsin
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // İleride başka kullanıcıya özel alt koleksiyonlar eklersen
+    // (ör: runs, history vs. hepsi users/{userId}/... altında olursa)
+    // hepsi bu kuralla kapsanabilir:
+    match /users/{userId}/{subcollection=**}/{docId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ===== Varsayılan: diğer her şeyi kapat =====
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

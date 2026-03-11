@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
+import '../pages/notifications_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomeHeader extends StatelessWidget {
@@ -52,7 +53,11 @@ class HomeHeader extends StatelessWidget {
                     color: theme.textPrimary,
                     iconSize: 24,
                     onPressed: () {
-                      // Show notifications
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const NotificationsPage(),
+                        ),
+                      );
                     },
                   ),
                 ],

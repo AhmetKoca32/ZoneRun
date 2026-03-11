@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../../data/services/motivation_quote_service.dart';
 
 class MotivationCard extends StatelessWidget {
@@ -10,7 +11,8 @@ class MotivationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    final quote = MotivationQuoteService.getDailyQuote();
+    final localeCode = AppLocalizations.of(context)?.localeName ?? 'tr';
+    final quote = MotivationQuoteService.getDailyQuote(localeCode: localeCode);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),

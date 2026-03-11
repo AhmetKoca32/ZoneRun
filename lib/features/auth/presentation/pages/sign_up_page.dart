@@ -4,7 +4,11 @@ import 'package:provider/provider.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
+import '../../../../l10n/app_localizations_extra.dart';
+import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/auth_provider.dart';
+import '../utils/auth_l10n.dart';
 import 'login_page.dart';
 
 class SignUpPage extends StatefulWidget {
@@ -45,16 +49,23 @@ class _SignUpPageState extends State<SignUpPage> {
     );
 
     if (success && mounted) {
+      // Auth state önce tetiklenip profil "Kullanıcı" ile kaydedilebiliyor; kayıt ismini hemen yaz
+      final name = _nameController.text.trim();
+      if (name.isNotEmpty) {
+        await Provider.of<ProfileProvider>(context, listen: false)
+            .updateUserName(name);
+      }
+      if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const MainNavigation()),
         (route) => false,
       );
-    } else if (mounted && authProvider.errorMessage != null) {
+    } else if (mounted && authProvider.errorCode != null) {
       final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage!,
+            AuthL10n.messageFor(context, authProvider.errorCode)!,
             style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
           ),
           backgroundColor: theme.secondaryBackground,
@@ -73,12 +84,12 @@ class _SignUpPageState extends State<SignUpPage> {
         MaterialPageRoute(builder: (context) => const MainNavigation()),
         (route) => false,
       );
-    } else if (mounted && authProvider.errorMessage != null) {
+    } else if (mounted && authProvider.errorCode != null) {
       final theme = context.appTheme;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            authProvider.errorMessage!,
+            AuthL10n.messageFor(context, authProvider.errorCode)!,
             style: AppTypography.bodyMedium.copyWith(color: theme.textPrimary),
           ),
           backgroundColor: theme.secondaryBackground,
@@ -91,6 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
+    final l10n = AppLocalizations.of(context)!;
     final screenHeight = MediaQuery.of(context).size.height;
 
     return Scaffold(
@@ -186,7 +198,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Giriş Yap',
+                                      l10n.authLoginTab,
                                       style: AppTypography.bodyMedium.copyWith(
                                         color: theme.textSecondary,
                                       ),
@@ -213,7 +225,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     ),
                                     child: Text(
-                                      'Kayıt Ol',
+                                      l10n.authSignUpTab,
                                       style: AppTypography.bodyMedium.copyWith(
                                         color: theme.textPrimary,
                                         fontWeight: AppTypography.bold,
@@ -234,7 +246,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Adınız Soyadınız',
+                              hintText: l10n.signUpNameHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -262,10 +274,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Lütfen adınızı girin';
+                                return l10n.signUpNameRequired;
                               }
                               if (value.trim().length < 2) {
-                                return 'İsim en az 2 karakter olmalıdır';
+                                return l10n.signUpNameMinLength;
                               }
                               return null;
                             },
@@ -280,7 +292,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'email@domain.com',
+                              hintText: l10n.authEmailHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -308,10 +320,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.trim().isEmpty) {
-                                return 'Lütfen e-posta adresinizi girin';
+                                return l10n.authEmailRequired;
                               }
                               if (!value.contains('@')) {
-                                return 'Geçerli bir e-posta adresi girin';
+                                return l10n.authEmailInvalid;
                               }
                               return null;
                             },
@@ -326,7 +338,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Şifre',
+                              hintText: l10n.authPasswordHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -367,10 +379,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Lütfen şifrenizi girin';
+                                return l10n.authPasswordRequired;
                               }
                               if (value.length < 6) {
-                                return 'Şifre en az 6 karakter olmalıdır';
+                                return l10n.authPasswordMinLength;
                               }
                               return null;
                             },
@@ -385,7 +397,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               color: theme.textPrimary,
                             ),
                             decoration: InputDecoration(
-                              hintText: 'Şifre Tekrar',
+                              hintText: l10n.signUpConfirmPasswordHint,
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -427,10 +439,10 @@ class _SignUpPageState extends State<SignUpPage> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Lütfen şifrenizi tekrar girin';
+                                return l10n.signUpConfirmPasswordRequired;
                               }
                               if (value != _passwordController.text) {
-                                return 'Şifreler eşleşmiyor';
+                                return l10n.signUpConfirmPasswordMismatch;
                               }
                               return null;
                             },
@@ -467,7 +479,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                             ),
                                           )
                                         : Text(
-                                            'Devam Et',
+                                            l10n.authContinueButton,
                                             style: AppTypography.bodyLarge
                                                 .copyWith(
                                                   color: theme.surface,
@@ -485,7 +497,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           // Divider
                           Center(
                             child: Text(
-                              'veya',
+                              l10n.authOr,
                               style: AppTypography.bodySmall.copyWith(
                                 color: theme.textSecondary,
                               ),
@@ -530,7 +542,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        'Google ile Devam Et',
+                                      l10n.authContinueWithGoogle,
                                         style: AppTypography.bodyMedium
                                             .copyWith(
                                               color: theme.textPrimary,
@@ -550,7 +562,7 @@ class _SignUpPageState extends State<SignUpPage> {
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             child: Text(
-                              'Devam ederek Kullanım Şartları ve Gizlilik Politikası\'nı kabul etmiş olursunuz',
+                              l10n.authTerms,
                               style: AppTypography.bodySmall.copyWith(
                                 color: theme.textSecondary,
                                 fontSize: 11,

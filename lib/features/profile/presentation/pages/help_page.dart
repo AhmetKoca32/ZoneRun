@@ -3,6 +3,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 
 class HelpPage extends StatefulWidget {
   const HelpPage({super.key});
@@ -36,7 +37,7 @@ class _HelpPageState extends State<HelpPage> {
     try {
       final subject = Uri.encodeComponent(_subjectController.text.trim());
       final body = Uri.encodeComponent(_messageController.text.trim());
-      final email = 'support@zonerun.com'; // TODO: Replace with actual support email
+      final email = 'zoneruun@gmail.com';
       
       final mailtoUri = Uri.parse('mailto:$email?subject=$subject&body=$body');
       
@@ -48,7 +49,7 @@ class _HelpPageState extends State<HelpPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Mail uygulamanız açıldı',
+                AppLocalizations.of(context)!.helpMailOpened,
                 style: AppTypography.bodyMedium.copyWith(
                   color: theme.textPrimary,
                 ),
@@ -77,9 +78,9 @@ class _HelpPageState extends State<HelpPage> {
       if (mounted) {
         final theme = context.appTheme;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Bir hata oluştu: $e',
+            SnackBar(
+              content: Text(
+                AppLocalizations.of(context)!.helpErrorOccurred(e.toString()),
               style: AppTypography.bodyMedium.copyWith(
                 color: theme.textPrimary,
               ),
@@ -131,7 +132,7 @@ class _HelpPageState extends State<HelpPage> {
                     ),
                     const SizedBox(width: 12),
                     Text(
-                      'Yardım',
+                      AppLocalizations.of(context)!.helpPageTitle,
                       style: AppTypography.headlineSmall.copyWith(
                         color: theme.textPrimary,
                         fontWeight: AppTypography.bold,
@@ -189,7 +190,7 @@ class _HelpPageState extends State<HelpPage> {
                     const SizedBox(height: 16),
                     Center(
                       child: Text(
-                        'Bize Ulaşın',
+                        AppLocalizations.of(context)!.helpContactUs,
                         style: AppTypography.headlineSmall.copyWith(
                           color: theme.textPrimary,
                           fontWeight: AppTypography.bold,
@@ -203,7 +204,7 @@ class _HelpPageState extends State<HelpPage> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8),
                         child: Text(
-                          'Sorularınız veya önerileriniz için bize mail gönderebilirsiniz',
+                          AppLocalizations.of(context)!.helpContactDescription,
                           style: AppTypography.bodySmall.copyWith(
                             color: theme.textSecondary,
                             fontWeight: AppTypography.light,
@@ -227,7 +228,7 @@ class _HelpPageState extends State<HelpPage> {
                   children: [
                     // Subject Field
                     Text(
-                      'Konu',
+                      AppLocalizations.of(context)!.helpSubject,
                       style: AppTypography.bodyMedium.copyWith(
                         color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
@@ -240,7 +241,7 @@ class _HelpPageState extends State<HelpPage> {
                         color: theme.textPrimary,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Örn: Uygulama hatası, öneri...',
+                        hintText: AppLocalizations.of(context)!.helpSubjectHint,
                         hintStyle: AppTypography.bodyMedium.copyWith(
                           color: theme.textSecondary,
                         ),
@@ -274,7 +275,7 @@ class _HelpPageState extends State<HelpPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Lütfen bir konu girin';
+                          return AppLocalizations.of(context)!.helpSubjectRequired;
                         }
                         return null;
                       },
@@ -283,7 +284,7 @@ class _HelpPageState extends State<HelpPage> {
 
                     // Message Field
                     Text(
-                      'Mesaj',
+                      AppLocalizations.of(context)!.helpMessage,
                       style: AppTypography.bodyMedium.copyWith(
                         color: theme.textPrimary,
                         fontWeight: AppTypography.semiBold,
@@ -297,7 +298,7 @@ class _HelpPageState extends State<HelpPage> {
                         color: theme.textPrimary,
                       ),
                       decoration: InputDecoration(
-                        hintText: 'Mesajınızı buraya yazın...',
+                        hintText: AppLocalizations.of(context)!.helpMessageHint,
                         hintStyle: AppTypography.bodyMedium.copyWith(
                           color: theme.textSecondary,
                         ),
@@ -328,10 +329,10 @@ class _HelpPageState extends State<HelpPage> {
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return 'Lütfen bir mesaj girin';
+                          return AppLocalizations.of(context)!.helpMessageRequired;
                         }
                         if (value.trim().length < 10) {
-                          return 'Mesaj en az 10 karakter olmalıdır';
+                          return AppLocalizations.of(context)!.helpMessageMinLength;
                         }
                         return null;
                       },
@@ -382,7 +383,7 @@ class _HelpPageState extends State<HelpPage> {
                                     ),
                                     const SizedBox(width: 8),
                                     Text(
-                                      'Mail Gönder',
+                                      AppLocalizations.of(context)!.helpSendEmail,
                                       style: AppTypography.bodyLarge.copyWith(
                                         color: theme.primaryBackground,
                                         fontWeight: AppTypography.bold,

@@ -17,7 +17,7 @@ class FirebaseService {
   /// Get Firestore instance
   static FirebaseFirestore get firestore {
     if (_firestore == null) {
-      throw Exception('Firebase not initialized. Call FirebaseService.initialize() first.');
+      throw Exception('Veritabanı hazır değil. Uygulama başlatılamadı.');
     }
     return _firestore!;
   }
@@ -25,7 +25,7 @@ class FirebaseService {
   /// Get Auth instance
   static FirebaseAuth get auth {
     if (_auth == null) {
-      throw Exception('Firebase not initialized. Call FirebaseService.initialize() first.');
+      throw Exception('Giriş sistemi hazır değil. Uygulama başlatılamadı.');
     }
     return _auth!;
   }

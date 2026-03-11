@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/profile/presentation/providers/profile_provider.dart';
+import '../constants/app_constants.dart';
+import '../constants/banner_constants.dart';
+import '../constants/overlay_constants.dart';
+import '../constants/reward_constants.dart';
 import '../navigation/main_navigation.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -17,15 +20,23 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToHome(); // Disabled to keep splash screen permanent
+    // Önce splash ekranı çizilsin, sonra precache başlasın 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Future.delayed(const Duration(milliseconds: 350), () {
+        if (mounted) _navigateToHome();
+      });
+    });
   }
 
   _navigateToHome() async {
     // Record start time to ensure minimum 2 seconds
     final startTime = DateTime.now();
 
-    // Wait for app initialization (e.g., data loading)
-    await Future.delayed(const Duration(seconds: 2));
+    // Ödüller görsellerini splash görünürken yükle; en az 2 sn bekle ile paralel
+    await Future.wait([
+      _precacheRewardsAssets(),
+      Future.delayed(const Duration(seconds: 2)),
+    ]);
 
     if (!mounted) return;
 
@@ -59,16 +70,72 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    // Navigate based on auth state after auth check is complete
-    if (authProvider.isLoggedIn) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const MainNavigation()),
-      );
-    } else {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const LoginPage()),
+    // Login isteğe bağlı: her zaman ana uygulamaya git (misafir veya giriş yapmış kullanıcı)
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (context) => const MainNavigation()),
+    );
+  }
+
+  /// Tüm ödül görsellerini (avatar, banner, aksesuar) splash ekranında yükler.
+  Future<void> _precacheRewardsAssets() async {
+    const avatarSize = 128;
+    const bannerW = 256;
+    const bannerH = 160;
+    final futures = <Future<void>>[];
+
+    for (var i = 0; i < RewardConstants.defaultAvatarCount; i++) {
+      futures.add(
+        precacheImage(
+          ResizeImage.resizeIfNeeded(
+            avatarSize,
+            avatarSize,
+            AssetImage(AppConstants.avatarAssetPath(i)),
+          ),
+          context,
+        ),
       );
     }
+    for (var i = 0; i < RewardConstants.premiumAvatarCount; i++) {
+      final id = RewardConstants.premiumAvatarStartId + i;
+      futures.add(
+        precacheImage(
+          ResizeImage.resizeIfNeeded(
+            avatarSize,
+            avatarSize,
+            AssetImage(AppConstants.avatarAssetPath(id)),
+          ),
+          context,
+        ),
+      );
+    }
+    for (var id = 1; id <= RewardConstants.rewardBannerCount; id++) {
+      final path = BannerConstants.imagePath(id);
+      if (path != null) {
+        futures.add(
+          precacheImage(
+            ResizeImage.resizeIfNeeded(bannerW, bannerH, AssetImage(path)),
+            context,
+          ),
+        );
+      }
+    }
+    for (var id = 1; id <= OverlayConstants.accessoryCount; id++) {
+      final path = OverlayConstants.overlayAssetPath(id);
+      if (path != null) {
+        futures.add(
+          precacheImage(
+            ResizeImage.resizeIfNeeded(
+              avatarSize,
+              avatarSize,
+              AssetImage(path),
+            ),
+            context,
+          ),
+        );
+      }
+    }
+
+    await Future.wait(futures);
   }
 
   Future<void> _waitForAuthState() async {
@@ -115,13 +182,16 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Siyah ekran olmasın: arka plan rengi opak (splash görseli yüklenene kadar)
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: bgColor,
       body: Container(
         width: double.infinity,
         height: double.infinity,
         decoration: BoxDecoration(
-          image: DecorationImage(
+          color: bgColor,
+          image: const DecorationImage(
             image: AssetImage('assets/images/splash_background.png'),
             fit: BoxFit.cover,
           ),

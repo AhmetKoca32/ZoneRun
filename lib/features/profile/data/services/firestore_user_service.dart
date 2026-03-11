@@ -63,6 +63,17 @@ class FirestoreUserService {
     }
   }
 
+  /// Delete current user's Firestore document (e.g. before deleting Auth account)
+  Future<void> deleteCurrentUserDocument() async {
+    if (_firestore == null || _auth?.currentUser == null) return;
+    try {
+      final uid = _currentUserId;
+      await _firestore!.collection('users').doc(uid).delete();
+    } catch (_) {
+      // Hesap silme işlemini engelleme; Firestore silinmese de devam et
+    }
+  }
+
   /// Create or update user profile
   Future<void> saveUserProfile(UserProfileModel profile) async {
     if (_firestore == null) {

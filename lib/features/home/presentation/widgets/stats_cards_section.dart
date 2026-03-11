@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
+import '../../../../l10n/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class StatsCardsSection extends StatelessWidget {
@@ -12,7 +13,7 @@ class StatsCardsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = context.appTheme;
-    
+    final l10n = AppLocalizations.of(context)!;
     return Consumer<HomeProvider>(
       builder: (context, provider, child) {
         return Padding(
@@ -39,7 +40,7 @@ class StatsCardsSection extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'BAŞLA',
+                  l10n.startButton,
                   style: AppTypography.labelLarge.copyWith(
                     fontWeight: AppTypography.bold,
                     color: theme.primaryBackground,
