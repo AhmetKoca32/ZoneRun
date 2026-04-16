@@ -1,11 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../l10n/app_localizations_extra.dart';
 import '../providers/auth_provider.dart';
 import '../utils/auth_l10n.dart';
 import 'sign_up_page.dart';
@@ -22,6 +23,9 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _submitted = false;
+  bool _primaryButtonPressed = false;
+  bool _googleButtonPressed = false;
 
   @override
   void dispose() {
@@ -31,6 +35,7 @@ class _LoginPageState extends State<LoginPage> {
   }
 
   Future<void> _handleLogin() async {
+    setState(() => _submitted = true);
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -70,134 +75,267 @@ class _LoginPageState extends State<LoginPage> {
 
     showDialog(
       context: context,
+      barrierColor: theme.primaryBackground.withOpacity(0.7),
       builder: (dialogContext) {
-        return AlertDialog(
-          backgroundColor: theme.surface,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            l10n.authForgotPasswordTitle,
-            style: AppTypography.headlineSmall.copyWith(
-              color: theme.textPrimary,
-              fontWeight: AppTypography.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                l10n.authForgotPasswordDescription,
-                style: AppTypography.bodySmall.copyWith(
-                  color: theme.textSecondary,
-                  height: 1.4,
-                ),
+        return Dialog(
+          backgroundColor: Colors.transparent,
+          insetPadding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  theme.surface,
+                  theme.surface.withOpacity(0.9),
+                  theme.secondaryBackground.withOpacity(0.3),
+                ],
+                stops: const [0.0, 0.5, 1.0],
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: emailController,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: theme.textPrimary,
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.textPrimary.withOpacity(0.25),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-                decoration: InputDecoration(
-                  hintText: l10n.authEmailHint,
-                  hintStyle: AppTypography.bodyMedium.copyWith(
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: theme.primaryBackground.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.lock_reset_rounded,
+                        color: theme.textPrimary,
+                        size: 24,
+                      ),
+                    ),
+                    GestureDetector(
+                      onTap: () => Navigator.of(dialogContext).pop(),
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: theme.secondaryBackground,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.close,
+                          color: theme.textPrimary,
+                          size: 18,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  l10n.authForgotPasswordTitle,
+                  style: AppTypography.headlineSmall.copyWith(
+                    color: theme.textPrimary,
+                    fontWeight: AppTypography.bold,
+                    fontSize: 22,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  l10n.authForgotPasswordDescription,
+                  style: AppTypography.bodySmall.copyWith(
                     color: theme.textSecondary,
+                    fontWeight: AppTypography.light,
+                    height: 1.4,
                   ),
-                  filled: true,
-                  fillColor: theme.secondaryBackground,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide.none,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                TextField(
+                  controller: emailController,
+                  autofocus: true,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.email],
+                  autocorrect: false,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: theme.textPrimary,
+                    fontWeight: AppTypography.medium,
+                    fontSize: 16,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 14,
+                  decoration: InputDecoration(
+                    hintText: l10n.authEmailHint,
+                    hintStyle: AppTypography.bodyMedium.copyWith(
+                      color: theme.textSecondary,
+                    ),
+                    prefixIcon: Icon(Icons.mail_outline, color: theme.textSecondary),
+                    filled: true,
+                    fillColor: theme.primaryBackground.withOpacity(0.3),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.border, width: 1.5),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.border, width: 1.5),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: theme.accent, width: 2),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => Navigator.of(dialogContext).pop(),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            color: theme.primaryBackground.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: theme.border, width: 1.5),
+                          ),
+                          child: Center(
+                            child: Text(
+                              l10n.cancel,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: theme.textPrimary,
+                                fontWeight: AppTypography.semiBold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () async {
+                          final email = emailController.text.trim();
+                          if (email.isEmpty || !email.contains('@')) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.authForgotPasswordInvalidEmail,
+                                  style: AppTypography.bodyMedium.copyWith(
+                                    color: theme.textPrimary,
+                                  ),
+                                ),
+                                backgroundColor: theme.secondaryBackground,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                            return;
+                          }
+                          final authProvider =
+                              Provider.of<AuthProvider>(context, listen: false);
+                          final success =
+                              await authProvider.sendPasswordResetEmail(email);
+                          if (!dialogContext.mounted) return;
+                          Navigator.of(dialogContext).pop();
+                          if (!context.mounted) return;
+                          if (success) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  l10n.authForgotPasswordSent,
+                                  style: AppTypography.bodyMedium.copyWith(
+                                    color: theme.textPrimary,
+                                  ),
+                                ),
+                                backgroundColor: theme.secondaryBackground,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          } else if (authProvider.errorCode != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  AuthL10n.messageFor(context, authProvider.errorCode)!,
+                                  style: AppTypography.bodyMedium.copyWith(
+                                    color: theme.textPrimary,
+                                  ),
+                                ),
+                                backgroundColor: theme.secondaryBackground,
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                theme.accent,
+                                theme.accent.withOpacity(0.9),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: theme.accent.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: Center(
+                            child: Text(
+                              l10n.authForgotPasswordSend,
+                              style: AppTypography.bodyMedium.copyWith(
+                                color: theme.primaryBackground,
+                                fontWeight: AppTypography.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                emailController.dispose();
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
-                l10n.cancel,
-                style: AppTypography.bodyMedium.copyWith(
-                  color: theme.textSecondary,
-                ),
-              ),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final email = emailController.text.trim();
-                if (email.isEmpty || !email.contains('@')) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        l10n.authForgotPasswordInvalidEmail,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: theme.textPrimary,
-                        ),
-                      ),
-                      backgroundColor: theme.secondaryBackground,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                  return;
-                }
-                final authProvider =
-                    Provider.of<AuthProvider>(context, listen: false);
-                final success =
-                    await authProvider.sendPasswordResetEmail(email);
-                emailController.dispose();
-                if (!dialogContext.mounted) return;
-                Navigator.of(dialogContext).pop();
-                if (!context.mounted) return;
-                if (success) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        l10n.authForgotPasswordSent,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: theme.textPrimary,
-                        ),
-                      ),
-                      backgroundColor: theme.secondaryBackground,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                } else if (authProvider.errorCode != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        AuthL10n.messageFor(context, authProvider.errorCode)!,
-                        style: AppTypography.bodyMedium.copyWith(
-                          color: theme.textPrimary,
-                        ),
-                      ),
-                      backgroundColor: theme.secondaryBackground,
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                }
-              },
-              style: FilledButton.styleFrom(
-                backgroundColor: theme.accent,
-                foregroundColor: theme.primaryBackground,
-              ),
-              child: const Text('Gönder'),
-            ),
-          ],
         );
       },
     );
+  }
+
+  static const _websiteBaseUrl = 'https://zone-run.vercel.app';
+
+  Future<void> _launchLegalUrl(BuildContext context, {required bool isTerms}) async {
+    final locale = Localizations.localeOf(context).languageCode;
+    final path = isTerms
+        ? (locale == 'tr' ? '/kullanim-kosullari/' : '/terms/')
+        : (locale == 'tr' ? '/gizlilik/' : '/privacy/');
+    final uri = Uri.parse('$_websiteBaseUrl$path');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.linkOpenFailed),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleGoogleSignIn() async {
@@ -262,13 +400,27 @@ class _LoginPageState extends State<LoginPage> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.only(top: 200),
+                  margin: EdgeInsets.only(top: screenHeight * 0.14),
                   decoration: BoxDecoration(
-                    color: theme.surface,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(theme.surface, theme.textPrimary, 0.06)!,
+                        theme.surface,
+                      ],
+                    ),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(32),
                       topRight: Radius.circular(32),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
                   ),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -280,7 +432,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Tab Navigation
+                          // Tab Navigation (pill/segment)
                           Row(
                             children: [
                               Expanded(
@@ -288,22 +440,19 @@ class _LoginPageState extends State<LoginPage> {
                                   onTap: () {
                                     // Already on login page
                                   },
-                                  child: Container(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: theme.accent,
-                                          width: 2,
-                                        ),
-                                      ),
+                                      color: theme.accent,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       l10n.authLoginTab,
                                       style: AppTypography.bodyMedium.copyWith(
-                                        color: theme.textPrimary,
+                                        color: theme.primaryBackground,
                                         fontWeight: AppTypography.bold,
                                       ),
                                       textAlign: TextAlign.center,
@@ -311,6 +460,7 @@ class _LoginPageState extends State<LoginPage> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
@@ -340,17 +490,14 @@ class _LoginPageState extends State<LoginPage> {
                                       ),
                                     );
                                   },
-                                  child: Container(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: theme.divider,
-                                          width: 1,
-                                        ),
-                                      ),
+                                      color: theme.secondaryBackground,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       l10n.authSignUpTab,
@@ -370,6 +517,10 @@ class _LoginPageState extends State<LoginPage> {
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -378,6 +529,7 @@ class _LoginPageState extends State<LoginPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.mail_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               border: OutlineInputBorder(
@@ -416,6 +568,10 @@ class _LoginPageState extends State<LoginPage> {
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            autofillHints: const [AutofillHints.password],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -424,6 +580,7 @@ class _LoginPageState extends State<LoginPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.lock_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               suffixIcon: IconButton(
@@ -497,41 +654,47 @@ class _LoginPageState extends State<LoginPage> {
                           // Login Button
                           Consumer<AuthProvider>(
                             builder: (context, authProvider, child) {
+                              final emailLoading = authProvider.isLoading && !authProvider.isGoogleLoading;
                               return GestureDetector(
-                                onTap: authProvider.isLoading
-                                    ? null
-                                    : _handleLogin,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.textPrimary,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: authProvider.isLoading
-                                        ? SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    theme.surface,
+                                onTapDown: authProvider.isLoading ? null : (_) => setState(() => _primaryButtonPressed = true),
+                                onTapUp: (_) => setState(() => _primaryButtonPressed = false),
+                                onTapCancel: () => setState(() => _primaryButtonPressed = false),
+                                onTap: authProvider.isLoading ? null : _handleLogin,
+                                child: AnimatedScale(
+                                  scale: _primaryButtonPressed ? 0.98 : 1.0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.textPrimary,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: emailLoading
+                                          ? SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                      theme.surface,
+                                                    ),
+                                              ),
+                                            )
+                                          : Text(
+                                              l10n.authContinueButton,
+                                              style: AppTypography.bodyLarge
+                                                  .copyWith(
+                                                    color: theme.surface,
+                                                    fontWeight:
+                                                        AppTypography.bold,
                                                   ),
                                             ),
-                                          )
-                                        : Text(
-                                            l10n.authContinueButton,
-                                            style: AppTypography.bodyLarge
-                                                .copyWith(
-                                                  color: theme.surface,
-                                                  fontWeight:
-                                                      AppTypography.bold,
-                                                ),
-                                          ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -554,48 +717,66 @@ class _LoginPageState extends State<LoginPage> {
                           Consumer<AuthProvider>(
                             builder: (context, authProvider, child) {
                               return GestureDetector(
-                                onTap: authProvider.isLoading
-                                    ? null
-                                    : _handleGoogleSignIn,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.secondaryBackground,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: theme.border,
-                                      width: 1,
+                                onTapDown: authProvider.isLoading ? null : (_) => setState(() => _googleButtonPressed = true),
+                                onTapUp: (_) => setState(() => _googleButtonPressed = false),
+                                onTapCancel: () => setState(() => _googleButtonPressed = false),
+                                onTap: authProvider.isLoading ? null : _handleGoogleSignIn,
+                                child: AnimatedScale(
+                                  scale: _googleButtonPressed ? 0.98 : 1.0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
                                     ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/google_logo.png',
-                                        height: 24,
-                                        width: 24,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                              return Icon(
-                                                Icons.g_mobiledata,
-                                                color: theme.textPrimary,
-                                                size: 24,
-                                              );
-                                            },
+                                    decoration: BoxDecoration(
+                                      color: theme.secondaryBackground,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: theme.border,
+                                        width: 1,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                      l10n.authContinueWithGoogle,
-                                        style: AppTypography.bodyMedium
-                                            .copyWith(
-                                              color: theme.textPrimary,
-                                              fontWeight:
-                                                  AppTypography.semiBold,
+                                    ),
+                                    child: authProvider.isGoogleLoading
+                                        ? Center(
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                  theme.textPrimary,
+                                                ),
+                                              ),
                                             ),
-                                      ),
-                                    ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Image.asset(
+                                                'assets/icons/google_logo.png',
+                                                height: 24,
+                                                width: 24,
+                                                errorBuilder:
+                                                    (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.g_mobiledata,
+                                                        color: theme.textPrimary,
+                                                        size: 24,
+                                                      );
+                                                    },
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                l10n.authContinueWithGoogle,
+                                                style: AppTypography.bodyMedium
+                                                    .copyWith(
+                                                      color: theme.textPrimary,
+                                                      fontWeight:
+                                                          AppTypography.semiBold,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
                                   ),
                                 ),
                               );
@@ -606,11 +787,35 @@ class _LoginPageState extends State<LoginPage> {
                           // Terms and Privacy
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              l10n.authTerms,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: theme.textSecondary,
-                                fontSize: 11,
+                            child: Text.rich(
+                              TextSpan(
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: theme.textSecondary,
+                                  fontSize: 11,
+                                ),
+                                children: [
+                                  TextSpan(text: l10n.authTermsPrefix),
+                                  TextSpan(
+                                    text: l10n.termsOfUse,
+                                    style: TextStyle(
+                                      color: theme.accent,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchLegalUrl(context, isTerms: true),
+                                  ),
+                                  TextSpan(text: l10n.authTermsAnd),
+                                  TextSpan(
+                                    text: l10n.privacyPolicy,
+                                    style: TextStyle(
+                                      color: theme.accent,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchLegalUrl(context, isTerms: false),
+                                  ),
+                                  TextSpan(text: l10n.authTermsSuffix),
+                                ],
                               ),
                               textAlign: TextAlign.center,
                             ),

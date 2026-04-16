@@ -9,10 +9,12 @@ class AuthProvider extends ChangeNotifier {
 
   User? _user;
   bool _isLoading = true;
+  bool _isGoogleLoading = false;
   String? _errorCode;
 
   User? get user => _user;
   bool get isLoading => _isLoading;
+  bool get isGoogleLoading => _isGoogleLoading;
   bool get isLoggedIn => _user != null;
   /// Localize with AuthL10n.messageFor(context, errorCode).
   String? get errorCode => _errorCode;
@@ -119,6 +121,7 @@ class AuthProvider extends ChangeNotifier {
   Future<bool> signInWithGoogle() async {
     try {
       _isLoading = true;
+      _isGoogleLoading = true;
       _errorCode = null;
       notifyListeners();
 
@@ -126,11 +129,13 @@ class AuthProvider extends ChangeNotifier {
 
       _user = _authService.currentUser;
       _isLoading = false;
+      _isGoogleLoading = false;
       _errorCode = null;
       notifyListeners();
       return true;
     } catch (e) {
       _isLoading = false;
+      _isGoogleLoading = false;
       _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
       notifyListeners();
       return false;
@@ -194,6 +199,29 @@ class AuthProvider extends ChangeNotifier {
       notifyListeners();
       rethrow;
     }
+  }
+
+  /// Email doğrulanmış mı? (Google ile girişte her zaman true.)
+  bool get isEmailVerified => _user?.emailVerified ?? false;
+
+  /// Doğrulama mailini tekrar gönder.
+  Future<bool> resendEmailVerification() async {
+    try {
+      _errorCode = null;
+      await _authService.resendEmailVerification();
+      return true;
+    } catch (e) {
+      _errorCode = e is AuthException ? e.code : 'authErrorGeneric';
+      notifyListeners();
+      return false;
+    }
+  }
+
+  /// Kullanıcı verisini sunucudan yenile (emailVerified güncellemesi için).
+  Future<void> reloadUser() async {
+    await _authService.reloadUser();
+    _user = _authService.currentUser;
+    notifyListeners();
   }
 
   /// Clear error message

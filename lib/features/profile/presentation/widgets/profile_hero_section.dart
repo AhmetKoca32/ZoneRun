@@ -21,6 +21,7 @@ class ProfileHeroSection extends StatelessWidget {
   final List<int> selectedAccessoryIds;
   /// Banner'ın sağındaki paylaş butonuna tıklanınca çağrılır (edit açılmaz).
   final VoidCallback? onShareTap;
+  final GlobalKey? shareKey;
 
   const ProfileHeroSection({
     super.key,
@@ -32,6 +33,7 @@ class ProfileHeroSection extends StatelessWidget {
     this.selectedTitleLabel,
     this.selectedAccessoryIds = const [],
     this.onShareTap,
+    this.shareKey,
   });
 
   @override
@@ -97,6 +99,7 @@ class ProfileHeroSection extends StatelessWidget {
                 top: 12,
                 right: 12,
                 child: Material(
+                  key: shareKey,
                   color: Colors.black26,
                   borderRadius: BorderRadius.circular(20),
                   child: InkWell(

@@ -7,7 +7,12 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class MetricsSection extends StatefulWidget {
-  const MetricsSection({super.key});
+  final GlobalKey? conqueredAreaKey;
+  final GlobalKey? todayDistanceKey;
+  final GlobalKey? totalDistanceKey;
+  final GlobalKey? statisticsKey;
+
+  const MetricsSection({super.key, this.conqueredAreaKey, this.todayDistanceKey, this.totalDistanceKey, this.statisticsKey});
 
   @override
   State<MetricsSection> createState() => _MetricsSectionState();
@@ -46,52 +51,69 @@ class _MetricsSectionState extends State<MetricsSection> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: _LeftMetricCard(
-                      value: totalArea,
-                      formatter: provider.formatArea,
-                      label: l10n.metricsConquered,
+                    child: KeyedSubtree(
+                      key: widget.conqueredAreaKey,
+                      child: _LeftMetricCard(
+                        value: totalArea,
+                        formatter: provider.formatArea,
+                        label: l10n.metricsConquered,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
-                  _CenterMetricCircle(
-                    value: todayDistance,
-                    formatter: provider.formatDistance,
-                    label: l10n.metricsToday,
+                  KeyedSubtree(
+                    key: widget.todayDistanceKey,
+                    child: _CenterMetricCircle(
+                      value: todayDistance,
+                      formatter: provider.formatDistance,
+                      label: l10n.metricsToday,
+                    ),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _RightMetricCard(
-                      value: totalDistance,
-                      formatter: provider.formatDistance,
-                      label: l10n.metricsTotal,
+                    child: KeyedSubtree(
+                      key: widget.totalDistanceKey,
+                      child: _RightMetricCard(
+                        value: totalDistance,
+                        formatter: provider.formatDistance,
+                        label: l10n.metricsTotal,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            _AnimatedSeeStatsButton(
-              showStats: showStats,
-              onTap: _onSeeStatsPressed,
-              label: l10n.metricsStatistics,
-            ),
-            _AnimatedStatsCards(
-              showStats: showStats,
-              averageArea: averageArea,
-              totalCalories: totalCalories,
-              todayCalories: todayCalories,
-              streak: streak,
-              maxArea: maxArea,
-              maxStreak: maxStreak,
-              formatArea: provider.formatArea,
-              formatCalories: provider.formatCalories,
-              formatStreak: provider.formatStreak,
-              averageAreaLabel: l10n.averageArea,
-              largestAreaLabel: l10n.largestArea,
-              streakLabel: l10n.streak,
-              highestStreakLabel: l10n.highestStreak,
-              caloriesLabel: l10n.calories,
-              totalLabel: l10n.totalLabel,
+            KeyedSubtree(
+              key: widget.statisticsKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _AnimatedSeeStatsButton(
+                    showStats: showStats,
+                    onTap: _onSeeStatsPressed,
+                    label: l10n.metricsStatistics,
+                  ),
+                  _AnimatedStatsCards(
+                    showStats: showStats,
+                    averageArea: averageArea,
+                    totalCalories: totalCalories,
+                    todayCalories: todayCalories,
+                    streak: streak,
+                    maxArea: maxArea,
+                    maxStreak: maxStreak,
+                    formatArea: provider.formatArea,
+                    formatCalories: provider.formatCalories,
+                    formatStreak: provider.formatStreak,
+                    averageAreaLabel: l10n.averageArea,
+                    largestAreaLabel: l10n.largestArea,
+                    streakLabel: l10n.streak,
+                    highestStreakLabel: l10n.highestStreak,
+                    caloriesLabel: l10n.calories,
+                    totalLabel: l10n.totalLabel,
+                  ),
+                ],
+              ),
             ),
           ],
         );

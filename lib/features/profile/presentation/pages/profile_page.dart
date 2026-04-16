@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/utils/coach_mark_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../core/constants/reward_constants.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
@@ -33,13 +34,55 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  static const _prefKey = 'coach_mark_profile_completed';
+
+  final _bannerKey = GlobalKey();
+  final _shareKey = GlobalKey();
+  final _quickAccessKey = GlobalKey();
+  final _tasksKey = GlobalKey();
+  final _rewardsKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _precacheRewardsAvatars();
+      _showCoachMarks();
+      // Email doğrulandıysa banner'ın güncellenmesi için kullanıcıyı yenile
+      context.read<AuthProvider>().reloadUser();
     });
+  }
+
+  Future<void> _showCoachMarks() async {
+    try {
+      if (!mounted) return;
+      final shouldShow = await CoachMarkHelper.shouldShow(_prefKey);
+      if (!shouldShow || !mounted) return;
+
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+
+      await CoachMarkHelper.show(
+        context: context,
+        prefKey: _prefKey,
+        targets: [
+          CoachMarkTarget(key: _bannerKey, text: l10n.coachProfileBanner),
+          CoachMarkTarget(
+            key: _shareKey,
+            text: l10n.coachProfileShare,
+            align: ContentAlign.bottom,
+          ),
+          CoachMarkTarget(key: _quickAccessKey, text: l10n.coachProfileQuickAccess),
+          CoachMarkTarget(key: _tasksKey, text: l10n.coachProfileTasks),
+          CoachMarkTarget(key: _rewardsKey, text: l10n.coachProfileRewards),
+        ],
+      );
+    } catch (_) {
+      // Widget deactivated during coach mark flow; safe to ignore.
+    }
   }
 
   void _precacheRewardsAvatars() {
@@ -106,40 +149,135 @@ class _ProfilePageState extends State<ProfilePage> {
                         Provider.of<AuthProvider>(context).isLoggedIn;
                     final displayName =
                         isLoggedIn ? provider.userName : AppLocalizations.of(context)!.guest;
-                    return GestureDetector(
-                      onTap: () => _showProfileEditOptions(context, provider),
-                      child: ProfileHeroSection(
-                        userName: displayName,
-                        avatarIndex: provider.avatarIndex,
-                        avatarUrl: provider.avatarUrl,
-                        joinDate: isLoggedIn ? provider.joinDate : null,
-                        selectedBannerId: provider.selectedBannerId,
-                        selectedTitleLabel: provider.selectedTitleId != null
-                            ? TaskL10nHelper.getTitleLabel(
-                                AppLocalizations.of(context)!,
-                                provider.selectedTitleId!,
-                              )
-                            : null,
-                        selectedAccessoryIds: provider.selectedAccessoryIds,
-                        onShareTap: () {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => SharePreviewPage(
-                                userName: displayName,
-                                selectedBannerId: provider.selectedBannerId,
-                                selectedTitleLabel:
-                                    provider.selectedTitleId != null
-                                        ? TaskL10nHelper.getTitleLabel(
-                                            AppLocalizations.of(context)!,
-                                            provider.selectedTitleId!,
-                                          )
-                                        : null,
-                                avatarIndex: provider.avatarIndex,
-                                avatarUrl: provider.avatarUrl,
+                    return KeyedSubtree(
+                      key: _bannerKey,
+                      child: GestureDetector(
+                        onTap: () => _showProfileEditOptions(context, provider),
+                        child: ProfileHeroSection(
+                          userName: displayName,
+                          avatarIndex: provider.avatarIndex,
+                          avatarUrl: provider.avatarUrl,
+                          joinDate: isLoggedIn ? provider.joinDate : null,
+                          selectedBannerId: provider.selectedBannerId,
+                          selectedTitleLabel: provider.selectedTitleId != null
+                              ? TaskL10nHelper.getTitleLabel(
+                                  AppLocalizations.of(context)!,
+                                  provider.selectedTitleId!,
+                                )
+                              : null,
+                          selectedAccessoryIds: provider.selectedAccessoryIds,
+                          shareKey: _shareKey,
+                          onShareTap: () {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => SharePreviewPage(
+                                  userName: displayName,
+                                  selectedBannerId: provider.selectedBannerId,
+                                  selectedTitleLabel:
+                                      provider.selectedTitleId != null
+                                          ? TaskL10nHelper.getTitleLabel(
+                                              AppLocalizations.of(context)!,
+                                              provider.selectedTitleId!,
+                                            )
+                                          : null,
+                                  avatarIndex: provider.avatarIndex,
+                                  avatarUrl: provider.avatarUrl,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                ),
+
+                // Email verification banner (below profile hero)
+                Consumer<AuthProvider>(
+                  builder: (context, authProvider, _) {
+                    if (!authProvider.isLoggedIn || authProvider.isEmailVerified) {
+                      return const SizedBox.shrink();
+                    }
+                    final l10n = AppLocalizations.of(context)!;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      child: Container(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.orange.withOpacity(0.3),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.orange.shade700,
+                              size: 22,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                l10n.profileEmailNotVerified,
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: theme.textPrimary,
+                                  height: 1.3,
+                                ),
                               ),
                             ),
-                          );
-                        },
+                            const SizedBox(width: 8),
+                            GestureDetector(
+                              onTap: () async {
+                                await authProvider.reloadUser();
+                                if (!context.mounted) return;
+                                if (authProvider.isEmailVerified) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(l10n.profileEmailVerified),
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                  return;
+                                }
+                                final sent = await authProvider.resendEmailVerification();
+                                if (!context.mounted) return;
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(
+                                      sent
+                                          ? l10n.profileEmailResendSuccess
+                                          : l10n.profileEmailResendError,
+                                    ),
+                                    behavior: SnackBarBehavior.floating,
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  l10n.profileEmailResend,
+                                  style: AppTypography.labelMedium.copyWith(
+                                    color: Colors.orange.shade700,
+                                    fontWeight: AppTypography.semiBold,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
@@ -147,6 +285,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 // Quick Access Cards
                 QuickAccessCards(
+                  quickAccessKey: _quickAccessKey,
                   isDarkTheme: provider.isDarkTheme,
                   onHelpCenterTap: () {
                     Navigator.of(context).push(
@@ -169,27 +308,33 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 // Başarılar & Ödüller Section
                 SectionHeader(title: AppLocalizations.of(context)!.sectionAchievements),
-                PromoCreditsItem(
-                  icon: Icons.emoji_events,
-                  title: AppLocalizations.of(context)!.tasks,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const TasksPage(),
-                      ),
-                    );
-                  },
+                KeyedSubtree(
+                  key: _tasksKey,
+                  child: PromoCreditsItem(
+                    icon: Icons.emoji_events,
+                    title: AppLocalizations.of(context)!.tasks,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const TasksPage(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-                PromoCreditsItem(
-                  icon: Icons.card_giftcard,
-                  title: AppLocalizations.of(context)!.rewards,
-                  onTap: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (context) => const RewardsPage(),
-                      ),
-                    );
-                  },
+                KeyedSubtree(
+                  key: _rewardsKey,
+                  child: PromoCreditsItem(
+                    icon: Icons.card_giftcard,
+                    title: AppLocalizations.of(context)!.rewards,
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => const RewardsPage(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
 
                 // My Account Section
@@ -1101,11 +1246,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showLogoutConfirmation(BuildContext context) {
-    final theme = context.appTheme;
+  void _showLogoutConfirmation(BuildContext ctx) {
+    final theme = ctx.appTheme;
+    final l10n = AppLocalizations.of(ctx)!;
+    final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
 
     showDialog(
-      context: context,
+      context: ctx,
       barrierColor: theme.primaryBackground.withOpacity(0.85),
       builder: (BuildContext dialogContext) {
         return Dialog(
@@ -1146,7 +1293,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  AppLocalizations.of(context)!.logoutConfirmTitle,
+                  l10n.logoutConfirmTitle,
                   style: AppTypography.headlineSmall.copyWith(
                     color: theme.textPrimary,
                     fontWeight: AppTypography.bold,
@@ -1155,7 +1302,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  AppLocalizations.of(context)!.logoutConfirmMessage,
+                  l10n.logoutConfirmMessage,
                   style: AppTypography.bodyMedium.copyWith(
                     color: theme.textSecondary,
                     height: 1.45,
@@ -1178,7 +1325,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.cancel),
+                        child: Text(l10n.cancel),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -1186,8 +1333,6 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: FilledButton(
                         onPressed: () async {
                           Navigator.of(dialogContext).pop();
-                          final authProvider =
-                              Provider.of<AuthProvider>(context, listen: false);
                           await authProvider.signOut();
                         },
                         style: FilledButton.styleFrom(
@@ -1198,7 +1343,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.logout),
+                        child: Text(l10n.logout),
                       ),
                     ),
                   ],
@@ -1211,11 +1356,13 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  void _showDeleteAccountConfirmation(BuildContext context) {
-    final theme = context.appTheme;
+  void _showDeleteAccountConfirmation(BuildContext ctx) {
+    final theme = ctx.appTheme;
+    final l10n = AppLocalizations.of(ctx)!;
+    final authProvider = Provider.of<AuthProvider>(ctx, listen: false);
 
     showDialog(
-      context: context,
+      context: ctx,
       barrierColor: theme.primaryBackground.withOpacity(0.85),
       builder: (BuildContext dialogContext) {
         return Dialog(
@@ -1256,7 +1403,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  AppLocalizations.of(context)!.deleteAccountConfirmTitle,
+                  l10n.deleteAccountConfirmTitle,
                   style: AppTypography.headlineSmall.copyWith(
                     color: theme.textPrimary,
                     fontWeight: AppTypography.bold,
@@ -1265,7 +1412,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 const SizedBox(height: 10),
                 Text(
-                  AppLocalizations.of(context)!.deleteAccountConfirmMessage,
+                  l10n.deleteAccountConfirmMessage,
                   style: AppTypography.bodyMedium.copyWith(
                     color: theme.textSecondary,
                     height: 1.45,
@@ -1288,7 +1435,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.cancel),
+                        child: Text(l10n.cancel),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -1296,15 +1443,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       child: FilledButton(
                         onPressed: () async {
                           Navigator.of(dialogContext).pop();
-                          final authProvider =
-                              Provider.of<AuthProvider>(context, listen: false);
                           try {
                             await authProvider.deleteAccount();
-                            if (context.mounted) {
+                            if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
-                                    AppLocalizations.of(context)!.profileAccountDeleted,
+                                    l10n.profileAccountDeleted,
                                     style: AppTypography.bodyMedium.copyWith(
                                       color: theme.textPrimary,
                                     ),
@@ -1315,12 +1460,12 @@ class _ProfilePageState extends State<ProfilePage> {
                               );
                             }
                           } catch (_) {
-                            if (context.mounted) {
+                            if (mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
                                   content: Text(
                                     AuthL10n.messageFor(context, authProvider.errorCode) ??
-                                        AppLocalizations.of(context)!.profileAccountDeleteError,
+                                        l10n.profileAccountDeleteError,
                                     style: AppTypography.bodyMedium.copyWith(
                                       color: theme.textPrimary,
                                     ),
@@ -1340,7 +1485,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: Text(AppLocalizations.of(context)!.deleteAccountConfirmConfirm),
+                        child: Text(l10n.deleteAccountConfirmConfirm),
                       ),
                     ),
                   ],

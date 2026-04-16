@@ -5,7 +5,10 @@ import '../pages/notifications_page.dart';
 import '../../../profile/presentation/pages/profile_page.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  final GlobalKey? profileKey;
+  final GlobalKey? notificationKey;
+
+  const HomeHeader({super.key, this.profileKey, this.notificationKey});
 
   @override
   Widget build(BuildContext context) {
@@ -24,9 +27,8 @@ class HomeHeader extends StatelessWidget {
                   'assets/icons/zonerun-high-resolution-logo-transparent.png',
                   height: 32,
                   fit: BoxFit.contain,
-                  color: theme.textPrimary, // Logo rengini tema'ya göre ayarla
-                  colorBlendMode:
-                      BlendMode.srcIn, // Beyaz logoyu tema rengine çevir
+                  color: theme.textPrimary,
+                  colorBlendMode: BlendMode.srcIn,
                 ),
               ),
             ),
@@ -37,6 +39,7 @@ class HomeHeader extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
+                    key: profileKey,
                     icon: const Icon(Icons.person_3_outlined),
                     color: theme.textPrimary,
                     iconSize: 24,
@@ -49,6 +52,7 @@ class HomeHeader extends StatelessWidget {
                     },
                   ),
                   IconButton(
+                    key: notificationKey,
                     icon: const Icon(Icons.notifications_outlined),
                     color: theme.textPrimary,
                     iconSize: 24,

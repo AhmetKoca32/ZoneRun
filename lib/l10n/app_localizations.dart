@@ -458,6 +458,24 @@ abstract class AppLocalizations {
   /// **'Devam ederek Kullanım Şartları ve Gizlilik Politikası\'nı kabul etmiş olursunuz'**
   String get authTerms;
 
+  /// No description provided for @authTermsPrefix.
+  ///
+  /// In tr, this message translates to:
+  /// **'Devam ederek '**
+  String get authTermsPrefix;
+
+  /// No description provided for @authTermsAnd.
+  ///
+  /// In tr, this message translates to:
+  /// **' ve '**
+  String get authTermsAnd;
+
+  /// No description provided for @authTermsSuffix.
+  ///
+  /// In tr, this message translates to:
+  /// **'\'nı kabul etmiş olursunuz'**
+  String get authTermsSuffix;
+
   /// No description provided for @authForgotPasswordTitle.
   ///
   /// In tr, this message translates to:
@@ -500,6 +518,12 @@ abstract class AppLocalizations {
   /// **'Geçerli bir e-posta adresi girin'**
   String get authForgotPasswordInvalidEmail;
 
+  /// No description provided for @authForgotPasswordSend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Gönder'**
+  String get authForgotPasswordSend;
+
   /// No description provided for @authForgotPasswordSent.
   ///
   /// In tr, this message translates to:
@@ -523,6 +547,30 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İsim en az 2 karakter olmalıdır'**
   String get signUpNameMinLength;
+
+  /// No description provided for @passwordStrengthWeak.
+  ///
+  /// In tr, this message translates to:
+  /// **'Zayıf'**
+  String get passwordStrengthWeak;
+
+  /// No description provided for @passwordStrengthFair.
+  ///
+  /// In tr, this message translates to:
+  /// **'Orta'**
+  String get passwordStrengthFair;
+
+  /// No description provided for @passwordStrengthGood.
+  ///
+  /// In tr, this message translates to:
+  /// **'İyi'**
+  String get passwordStrengthGood;
+
+  /// No description provided for @passwordStrengthStrong.
+  ///
+  /// In tr, this message translates to:
+  /// **'Güçlü'**
+  String get passwordStrengthStrong;
 
   /// No description provided for @signUpConfirmPasswordHint.
   ///
@@ -1490,6 +1538,36 @@ abstract class AppLocalizations {
   /// **'İsminizi girin'**
   String get profileEnterNameHint;
 
+  /// No description provided for @profileEmailNotVerified.
+  ///
+  /// In tr, this message translates to:
+  /// **'Email adresiniz doğrulanmadı. Lütfen gelen kutunuzu kontrol edin.'**
+  String get profileEmailNotVerified;
+
+  /// No description provided for @profileEmailResend.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tekrar Gönder'**
+  String get profileEmailResend;
+
+  /// No description provided for @profileEmailResendSuccess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Doğrulama maili tekrar gönderildi.'**
+  String get profileEmailResendSuccess;
+
+  /// No description provided for @profileEmailResendError.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mail gönderilemedi. Lütfen daha sonra tekrar deneyin.'**
+  String get profileEmailResendError;
+
+  /// No description provided for @profileEmailVerified.
+  ///
+  /// In tr, this message translates to:
+  /// **'Email doğrulandı!'**
+  String get profileEmailVerified;
+
   /// No description provided for @profileAccountDeleted.
   ///
   /// In tr, this message translates to:
@@ -2035,6 +2113,174 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Giriş sistemi hazır değil. Uygulama başlatılamadı.'**
   String get firebaseErrorAuthNotReady;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In tr, this message translates to:
+  /// **'Atla'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In tr, this message translates to:
+  /// **'Başla'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'ZoneRun\'a Hoş Geldin'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeDescription.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölgeleri keşfet, istatistiklerini takip et ve ödüller kazan.'**
+  String get onboardingWelcomeDescription;
+
+  /// No description provided for @onboardingMapTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Haritada Bölge Çiz'**
+  String get onboardingMapTitle;
+
+  /// No description provided for @onboardingMapDescription.
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS ile yürüyüşünü takip et ve haritada kendi bölgeni oluştur.'**
+  String get onboardingMapDescription;
+
+  /// No description provided for @onboardingTasksTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevler ve Ödüller'**
+  String get onboardingTasksTitle;
+
+  /// No description provided for @onboardingTasksDescription.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevleri tamamla, başlıklar ve bannerlar kazan.'**
+  String get onboardingTasksDescription;
+
+  /// No description provided for @onboardingStatsTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstatistiklerini Takip Et'**
+  String get onboardingStatsTitle;
+
+  /// No description provided for @onboardingStatsDescription.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesafe, alan ve kalori istatistiklerini görüntüle.'**
+  String get onboardingStatsDescription;
+
+  /// No description provided for @coachGotIt.
+  ///
+  /// In tr, this message translates to:
+  /// **'Anladım'**
+  String get coachGotIt;
+
+  /// No description provided for @coachNext.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sonraki'**
+  String get coachNext;
+
+  /// No description provided for @coachProfileIcon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilini ve ayarları buradan görüntüle.'**
+  String get coachProfileIcon;
+
+  /// No description provided for @coachNotificationIcon.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bildirimlerini buradan kontrol et.'**
+  String get coachNotificationIcon;
+
+  /// No description provided for @coachConqueredArea.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam fethettiğin alan burada gösterilir.'**
+  String get coachConqueredArea;
+
+  /// No description provided for @coachTodayDistance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bugünkü mesafen burada gösterilir.'**
+  String get coachTodayDistance;
+
+  /// No description provided for @coachTotalDistance.
+  ///
+  /// In tr, this message translates to:
+  /// **'Toplam gittiğin mesafe burada gösterilir.'**
+  String get coachTotalDistance;
+
+  /// No description provided for @coachStatistics.
+  ///
+  /// In tr, this message translates to:
+  /// **'Detaylı istatistiklerini görmek için buraya dokun.'**
+  String get coachStatistics;
+
+  /// No description provided for @coachStartButton.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni bir bölge takibine başlamak için buraya dokun.'**
+  String get coachStartButton;
+
+  /// No description provided for @coachMapStart.
+  ///
+  /// In tr, this message translates to:
+  /// **'GPS takibini başlatmak için bu butona bas.'**
+  String get coachMapStart;
+
+  /// No description provided for @coachMapComplete.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bölgeni kaydetmek için bu butonu kullan.'**
+  String get coachMapComplete;
+
+  /// No description provided for @coachMapCancel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Takibi iptal etmek için bu butonu kullan.'**
+  String get coachMapCancel;
+
+  /// No description provided for @coachProfileBanner.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profiline dokunarak ismini, avatarını ve kilonu düzenleyebilirsin.'**
+  String get coachProfileBanner;
+
+  /// No description provided for @coachProfileShare.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilini sosyal medyada paylaşabilirsin.'**
+  String get coachProfileShare;
+
+  /// No description provided for @coachProfileQuickAccess.
+  ///
+  /// In tr, this message translates to:
+  /// **'Buradan yardım merkezine, istatistiklerine ulaş veya temayı değiştir.'**
+  String get coachProfileQuickAccess;
+
+  /// No description provided for @coachProfileTasks.
+  ///
+  /// In tr, this message translates to:
+  /// **'Görevleri tamamlayarak ödüller kazan!'**
+  String get coachProfileTasks;
+
+  /// No description provided for @coachProfileRewards.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kazandığın avatar, banner ve sıfatları buradan seç.'**
+  String get coachProfileRewards;
 }
 
 class _AppLocalizationsDelegate

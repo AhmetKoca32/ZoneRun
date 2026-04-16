@@ -1,11 +1,12 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/navigation/main_navigation.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../l10n/app_localizations.dart';
-import '../../../../l10n/app_localizations_extra.dart';
 import '../../../profile/presentation/providers/profile_provider.dart';
 import '../providers/auth_provider.dart';
 import '../utils/auth_l10n.dart';
@@ -26,6 +27,9 @@ class _SignUpPageState extends State<SignUpPage> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  bool _submitted = false;
+  bool _primaryButtonPressed = false;
+  bool _googleButtonPressed = false;
 
   @override
   void dispose() {
@@ -37,6 +41,7 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _handleSignUp() async {
+    setState(() => _submitted = true);
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -72,6 +77,28 @@ class _SignUpPageState extends State<SignUpPage> {
           behavior: SnackBarBehavior.floating,
         ),
       );
+    }
+  }
+
+  static const _websiteBaseUrl = 'https://zone-run.vercel.app';
+
+  Future<void> _launchLegalUrl(BuildContext context, {required bool isTerms}) async {
+    final locale = Localizations.localeOf(context).languageCode;
+    final path = isTerms
+        ? (locale == 'tr' ? '/kullanim-kosullari/' : '/terms/')
+        : (locale == 'tr' ? '/gizlilik/' : '/privacy/');
+    final uri = Uri.parse('$_websiteBaseUrl$path');
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.linkOpenFailed),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -135,13 +162,27 @@ class _SignUpPageState extends State<SignUpPage> {
               Expanded(
                 child: Container(
                   width: double.infinity,
-                  margin: const EdgeInsets.only(top: 100),
+                  margin: EdgeInsets.only(top: screenHeight * 0.14),
                   decoration: BoxDecoration(
-                    color: theme.surface,
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        Color.lerp(theme.surface, theme.textPrimary, 0.06)!,
+                        theme.surface,
+                      ],
+                    ),
                     borderRadius: const BorderRadius.only(
                       topLeft: Radius.circular(32),
                       topRight: Radius.circular(32),
                     ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.15),
+                        blurRadius: 20,
+                        offset: const Offset(0, -4),
+                      ),
+                    ],
                   ),
                   child: SingleChildScrollView(
                     padding: const EdgeInsets.symmetric(
@@ -153,7 +194,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Tab Navigation
+                          // Tab Navigation (pill/segment)
                           Row(
                             children: [
                               Expanded(
@@ -185,17 +226,14 @@ class _SignUpPageState extends State<SignUpPage> {
                                       ),
                                     );
                                   },
-                                  child: Container(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: theme.divider,
-                                          width: 1,
-                                        ),
-                                      ),
+                                      color: theme.secondaryBackground,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       l10n.authLoginTab,
@@ -207,27 +245,25 @@ class _SignUpPageState extends State<SignUpPage> {
                                   ),
                                 ),
                               ),
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: GestureDetector(
                                   onTap: () {
                                     // Already on sign up page
                                   },
-                                  child: Container(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     decoration: BoxDecoration(
-                                      border: Border(
-                                        bottom: BorderSide(
-                                          color: theme.accent,
-                                          width: 2,
-                                        ),
-                                      ),
+                                      color: theme.accent,
+                                      borderRadius: BorderRadius.circular(12),
                                     ),
                                     child: Text(
                                       l10n.authSignUpTab,
                                       style: AppTypography.bodyMedium.copyWith(
-                                        color: theme.textPrimary,
+                                        color: theme.primaryBackground,
                                         fontWeight: AppTypography.bold,
                                       ),
                                       textAlign: TextAlign.center,
@@ -242,6 +278,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           // Name Field
                           TextFormField(
                             controller: _nameController,
+                            autofillHints: const [AutofillHints.name],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -250,6 +290,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.person_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               border: OutlineInputBorder(
@@ -288,6 +329,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           TextFormField(
                             controller: _emailController,
                             keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -296,6 +341,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.mail_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               border: OutlineInputBorder(
@@ -334,6 +380,10 @@ class _SignUpPageState extends State<SignUpPage> {
                           TextFormField(
                             controller: _passwordController,
                             obscureText: _obscurePassword,
+                            autofillHints: const [AutofillHints.newPassword],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -342,6 +392,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.lock_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               suffixIcon: IconButton(
@@ -387,12 +438,73 @@ class _SignUpPageState extends State<SignUpPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
+
+                          // Password strength indicator
+                          ValueListenableBuilder<TextEditingValue>(
+                            valueListenable: _passwordController,
+                            builder: (context, value, _) {
+                              final password = value.text;
+                              if (password.isEmpty) return const SizedBox(height: 16);
+                              final strength = _calcPasswordStrength(password);
+                              final labels = [
+                                l10n.passwordStrengthWeak,
+                                l10n.passwordStrengthFair,
+                                l10n.passwordStrengthGood,
+                                l10n.passwordStrengthStrong,
+                              ];
+                              const colors = [
+                                Color(0xFFE53935),
+                                Color(0xFFFB8C00),
+                                Color(0xFFC0CA33),
+                                Color(0xFF43A047),
+                              ];
+                              final color = colors[strength - 1];
+                              final label = labels[strength - 1];
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 10, bottom: 16),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Row(
+                                        children: List.generate(4, (i) {
+                                          return Expanded(
+                                            child: Container(
+                                              height: 4,
+                                              margin: EdgeInsets.only(right: i < 3 ? 4 : 0),
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.circular(2),
+                                                color: i < strength
+                                                    ? color
+                                                    : theme.border.withOpacity(0.3),
+                                              ),
+                                            ),
+                                          );
+                                        }),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Text(
+                                      label,
+                                      style: AppTypography.labelSmall.copyWith(
+                                        color: color,
+                                        fontWeight: AppTypography.semiBold,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          ),
 
                           // Confirm Password Field
                           TextFormField(
                             controller: _confirmPasswordController,
                             obscureText: _obscureConfirmPassword,
+                            autofillHints: const [AutofillHints.newPassword],
+                            autovalidateMode: _submitted
+                                ? AutovalidateMode.onUserInteraction
+                                : AutovalidateMode.disabled,
                             style: AppTypography.bodyMedium.copyWith(
                               color: theme.textPrimary,
                             ),
@@ -401,6 +513,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               hintStyle: AppTypography.bodyMedium.copyWith(
                                 color: theme.textSecondary,
                               ),
+                              prefixIcon: Icon(Icons.lock_outline, color: theme.textSecondary),
                               filled: true,
                               fillColor: theme.secondaryBackground,
                               suffixIcon: IconButton(
@@ -452,41 +565,47 @@ class _SignUpPageState extends State<SignUpPage> {
                           // Sign Up Button
                           Consumer<AuthProvider>(
                             builder: (context, authProvider, child) {
+                              final emailLoading = authProvider.isLoading && !authProvider.isGoogleLoading;
                               return GestureDetector(
-                                onTap: authProvider.isLoading
-                                    ? null
-                                    : _handleSignUp,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.textPrimary,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Center(
-                                    child: authProvider.isLoading
-                                        ? SizedBox(
-                                            width: 20,
-                                            height: 20,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor:
-                                                  AlwaysStoppedAnimation<Color>(
-                                                    theme.surface,
+                                onTapDown: authProvider.isLoading ? null : (_) => setState(() => _primaryButtonPressed = true),
+                                onTapUp: (_) => setState(() => _primaryButtonPressed = false),
+                                onTapCancel: () => setState(() => _primaryButtonPressed = false),
+                                onTap: authProvider.isLoading ? null : _handleSignUp,
+                                child: AnimatedScale(
+                                  scale: _primaryButtonPressed ? 0.98 : 1.0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: Container(
+                                    width: double.infinity,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: theme.textPrimary,
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Center(
+                                      child: emailLoading
+                                          ? SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<Color>(
+                                                      theme.surface,
+                                                    ),
+                                              ),
+                                            )
+                                          : Text(
+                                              l10n.authContinueButton,
+                                              style: AppTypography.bodyLarge
+                                                  .copyWith(
+                                                    color: theme.surface,
+                                                    fontWeight:
+                                                        AppTypography.bold,
                                                   ),
                                             ),
-                                          )
-                                        : Text(
-                                            l10n.authContinueButton,
-                                            style: AppTypography.bodyLarge
-                                                .copyWith(
-                                                  color: theme.surface,
-                                                  fontWeight:
-                                                      AppTypography.bold,
-                                                ),
-                                          ),
+                                    ),
                                   ),
                                 ),
                               );
@@ -509,48 +628,66 @@ class _SignUpPageState extends State<SignUpPage> {
                           Consumer<AuthProvider>(
                             builder: (context, authProvider, child) {
                               return GestureDetector(
-                                onTap: authProvider.isLoading
-                                    ? null
-                                    : _handleGoogleSignIn,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: theme.secondaryBackground,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(
-                                      color: theme.border,
-                                      width: 1,
+                                onTapDown: authProvider.isLoading ? null : (_) => setState(() => _googleButtonPressed = true),
+                                onTapUp: (_) => setState(() => _googleButtonPressed = false),
+                                onTapCancel: () => setState(() => _googleButtonPressed = false),
+                                onTap: authProvider.isLoading ? null : _handleGoogleSignIn,
+                                child: AnimatedScale(
+                                  scale: _googleButtonPressed ? 0.98 : 1.0,
+                                  duration: const Duration(milliseconds: 100),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
                                     ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Image.asset(
-                                        'assets/icons/google_logo.png',
-                                        height: 24,
-                                        width: 24,
-                                        errorBuilder:
-                                            (context, error, stackTrace) {
-                                              return Icon(
-                                                Icons.g_mobiledata,
-                                                color: theme.textPrimary,
-                                                size: 24,
-                                              );
-                                            },
+                                    decoration: BoxDecoration(
+                                      color: theme.secondaryBackground,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: theme.border,
+                                        width: 1,
                                       ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                      l10n.authContinueWithGoogle,
-                                        style: AppTypography.bodyMedium
-                                            .copyWith(
-                                              color: theme.textPrimary,
-                                              fontWeight:
-                                                  AppTypography.semiBold,
+                                    ),
+                                    child: authProvider.isGoogleLoading
+                                        ? Center(
+                                            child: SizedBox(
+                                              width: 24,
+                                              height: 24,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor: AlwaysStoppedAnimation<Color>(
+                                                  theme.textPrimary,
+                                                ),
+                                              ),
                                             ),
-                                      ),
-                                    ],
+                                          )
+                                        : Row(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Image.asset(
+                                                'assets/icons/google_logo.png',
+                                                height: 24,
+                                                width: 24,
+                                                errorBuilder:
+                                                    (context, error, stackTrace) {
+                                                      return Icon(
+                                                        Icons.g_mobiledata,
+                                                        color: theme.textPrimary,
+                                                        size: 24,
+                                                      );
+                                                    },
+                                              ),
+                                              const SizedBox(width: 12),
+                                              Text(
+                                                l10n.authContinueWithGoogle,
+                                                style: AppTypography.bodyMedium
+                                                    .copyWith(
+                                                      color: theme.textPrimary,
+                                                      fontWeight:
+                                                          AppTypography.semiBold,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
                                   ),
                                 ),
                               );
@@ -561,11 +698,35 @@ class _SignUpPageState extends State<SignUpPage> {
                           // Terms and Privacy
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
-                            child: Text(
-                              l10n.authTerms,
-                              style: AppTypography.bodySmall.copyWith(
-                                color: theme.textSecondary,
-                                fontSize: 11,
+                            child: Text.rich(
+                              TextSpan(
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: theme.textSecondary,
+                                  fontSize: 11,
+                                ),
+                                children: [
+                                  TextSpan(text: l10n.authTermsPrefix),
+                                  TextSpan(
+                                    text: l10n.termsOfUse,
+                                    style: TextStyle(
+                                      color: theme.accent,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchLegalUrl(context, isTerms: true),
+                                  ),
+                                  TextSpan(text: l10n.authTermsAnd),
+                                  TextSpan(
+                                    text: l10n.privacyPolicy,
+                                    style: TextStyle(
+                                      color: theme.accent,
+                                      decoration: TextDecoration.underline,
+                                    ),
+                                    recognizer: TapGestureRecognizer()
+                                      ..onTap = () => _launchLegalUrl(context, isTerms: false),
+                                  ),
+                                  TextSpan(text: l10n.authTermsSuffix),
+                                ],
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -581,5 +742,18 @@ class _SignUpPageState extends State<SignUpPage> {
         ),
       ),
     );
+  }
+
+  /// Returns 1-4 (Weak/Fair/Good/Strong).
+  static int _calcPasswordStrength(String password) {
+    if (password.length < 6) return 1;
+    final hasLetter = password.contains(RegExp(r'[a-zA-Z]'));
+    final hasDigit = password.contains(RegExp(r'[0-9]'));
+    final hasSpecial = password.contains(RegExp(r'[^a-zA-Z0-9]'));
+    final long = password.length >= 8;
+    if (hasLetter && hasDigit && hasSpecial && long) return 4;
+    if (hasLetter && hasDigit && long) return 3;
+    if (hasLetter && hasDigit) return 2;
+    return 1;
   }
 }

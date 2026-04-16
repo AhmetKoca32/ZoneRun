@@ -9,6 +9,7 @@ class QuickAccessCards extends StatelessWidget {
   final VoidCallback? onStatisticsTap;
   final VoidCallback? onThemeTap;
   final bool isDarkTheme;
+  final GlobalKey? quickAccessKey;
 
   const QuickAccessCards({
     super.key,
@@ -16,6 +17,7 @@ class QuickAccessCards extends StatelessWidget {
     this.onStatisticsTap,
     this.onThemeTap,
     required this.isDarkTheme,
+    this.quickAccessKey,
   });
 
   @override
@@ -23,6 +25,7 @@ class QuickAccessCards extends StatelessWidget {
     final theme = context.appTheme;
     
     return Container(
+      key: quickAccessKey,
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(

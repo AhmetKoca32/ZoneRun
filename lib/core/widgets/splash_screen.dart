@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/profile/presentation/providers/profile_provider.dart';
@@ -8,6 +9,8 @@ import '../constants/banner_constants.dart';
 import '../constants/overlay_constants.dart';
 import '../constants/reward_constants.dart';
 import '../navigation/main_navigation.dart';
+import '../utils/coach_mark_helper.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -70,9 +73,19 @@ class _SplashScreenState extends State<SplashScreen> {
 
     if (!mounted) return;
 
-    // Login isteğe bağlı: her zaman ana uygulamaya git (misafir veya giriş yapmış kullanıcı)
+    final prefs = await SharedPreferences.getInstance();
+    final onboardingCompleted = CoachMarkHelper.kAlwaysShow
+        ? false
+        : (prefs.getBool('onboarding_completed') ?? false);
+
+    if (!mounted) return;
+
+    final Widget destination = onboardingCompleted
+        ? const MainNavigation()
+        : const OnboardingScreen();
+
     Navigator.of(context).pushReplacement(
-      MaterialPageRoute(builder: (context) => const MainNavigation()),
+      MaterialPageRoute(builder: (_) => destination),
     );
   }
 

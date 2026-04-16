@@ -698,7 +698,7 @@ class HistoryPage extends StatelessWidget {
     final theme = context.appTheme;
     
     return Scaffold(
-      backgroundColor: theme.primaryBackground,
+      backgroundColor: Colors.transparent,
       body: Consumer<HistoryProvider>(
         builder: (context, provider, child) {
           final l10n = AppLocalizations.of(context)!;

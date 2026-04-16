@@ -198,6 +198,15 @@ class AppLocalizationsTr extends AppLocalizations {
       'Devam ederek Kullanım Şartları ve Gizlilik Politikası\'nı kabul etmiş olursunuz';
 
   @override
+  String get authTermsPrefix => 'Devam ederek ';
+
+  @override
+  String get authTermsAnd => ' ve ';
+
+  @override
+  String get authTermsSuffix => '\'nı kabul etmiş olursunuz';
+
+  @override
   String get authForgotPasswordTitle => 'Şifremi Unuttum';
 
   @override
@@ -221,6 +230,9 @@ class AppLocalizationsTr extends AppLocalizations {
       'Geçerli bir e-posta adresi girin';
 
   @override
+  String get authForgotPasswordSend => 'Gönder';
+
+  @override
   String get authForgotPasswordSent =>
       'E-posta adresinize şifre sıfırlama bağlantısı gönderildi.';
 
@@ -232,6 +244,18 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get signUpNameMinLength => 'İsim en az 2 karakter olmalıdır';
+
+  @override
+  String get passwordStrengthWeak => 'Zayıf';
+
+  @override
+  String get passwordStrengthFair => 'Orta';
+
+  @override
+  String get passwordStrengthGood => 'İyi';
+
+  @override
+  String get passwordStrengthStrong => 'Güçlü';
 
   @override
   String get signUpConfirmPasswordHint => 'Şifre Tekrar';
@@ -762,6 +786,23 @@ class AppLocalizationsTr extends AppLocalizations {
   String get profileEnterNameHint => 'İsminizi girin';
 
   @override
+  String get profileEmailNotVerified =>
+      'Email adresiniz doğrulanmadı. Lütfen gelen kutunuzu kontrol edin.';
+
+  @override
+  String get profileEmailResend => 'Tekrar Gönder';
+
+  @override
+  String get profileEmailResendSuccess => 'Doğrulama maili tekrar gönderildi.';
+
+  @override
+  String get profileEmailResendError =>
+      'Mail gönderilemedi. Lütfen daha sonra tekrar deneyin.';
+
+  @override
+  String get profileEmailVerified => 'Email doğrulandı!';
+
+  @override
   String get profileAccountDeleted => 'Hesabınız silindi.';
 
   @override
@@ -1077,4 +1118,97 @@ class AppLocalizationsTr extends AppLocalizations {
   @override
   String get firebaseErrorAuthNotReady =>
       'Giriş sistemi hazır değil. Uygulama başlatılamadı.';
+
+  @override
+  String get onboardingSkip => 'Atla';
+
+  @override
+  String get onboardingNext => 'Sonraki';
+
+  @override
+  String get onboardingGetStarted => 'Başla';
+
+  @override
+  String get onboardingWelcomeTitle => 'ZoneRun\'a Hoş Geldin';
+
+  @override
+  String get onboardingWelcomeDescription =>
+      'Bölgeleri keşfet, istatistiklerini takip et ve ödüller kazan.';
+
+  @override
+  String get onboardingMapTitle => 'Haritada Bölge Çiz';
+
+  @override
+  String get onboardingMapDescription =>
+      'GPS ile yürüyüşünü takip et ve haritada kendi bölgeni oluştur.';
+
+  @override
+  String get onboardingTasksTitle => 'Görevler ve Ödüller';
+
+  @override
+  String get onboardingTasksDescription =>
+      'Görevleri tamamla, başlıklar ve bannerlar kazan.';
+
+  @override
+  String get onboardingStatsTitle => 'İstatistiklerini Takip Et';
+
+  @override
+  String get onboardingStatsDescription =>
+      'Mesafe, alan ve kalori istatistiklerini görüntüle.';
+
+  @override
+  String get coachGotIt => 'Anladım';
+
+  @override
+  String get coachNext => 'Sonraki';
+
+  @override
+  String get coachProfileIcon => 'Profilini ve ayarları buradan görüntüle.';
+
+  @override
+  String get coachNotificationIcon => 'Bildirimlerini buradan kontrol et.';
+
+  @override
+  String get coachConqueredArea => 'Toplam fethettiğin alan burada gösterilir.';
+
+  @override
+  String get coachTodayDistance => 'Bugünkü mesafen burada gösterilir.';
+
+  @override
+  String get coachTotalDistance => 'Toplam gittiğin mesafe burada gösterilir.';
+
+  @override
+  String get coachStatistics =>
+      'Detaylı istatistiklerini görmek için buraya dokun.';
+
+  @override
+  String get coachStartButton =>
+      'Yeni bir bölge takibine başlamak için buraya dokun.';
+
+  @override
+  String get coachMapStart => 'GPS takibini başlatmak için bu butona bas.';
+
+  @override
+  String get coachMapComplete => 'Bölgeni kaydetmek için bu butonu kullan.';
+
+  @override
+  String get coachMapCancel => 'Takibi iptal etmek için bu butonu kullan.';
+
+  @override
+  String get coachProfileBanner =>
+      'Profiline dokunarak ismini, avatarını ve kilonu düzenleyebilirsin.';
+
+  @override
+  String get coachProfileShare => 'Profilini sosyal medyada paylaşabilirsin.';
+
+  @override
+  String get coachProfileQuickAccess =>
+      'Buradan yardım merkezine, istatistiklerine ulaş veya temayı değiştir.';
+
+  @override
+  String get coachProfileTasks => 'Görevleri tamamlayarak ödüller kazan!';
+
+  @override
+  String get coachProfileRewards =>
+      'Kazandığın avatar, banner ve sıfatları buradan seç.';
 }

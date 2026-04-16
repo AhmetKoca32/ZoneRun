@@ -129,6 +129,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 await _notificationService.setEvening(v, _eveningHour, _eveningMinute);
               },
               onTimeTap: () => _pickTime(true),
+              timeLabel: l10n.notificationsTimeLabel,
             ),
             const SizedBox(height: 28),
             Text(
@@ -156,6 +157,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 await _notificationService.setMorning(v, _morningHour, _morningMinute);
               },
               onTimeTap: () => _pickTime(false),
+              timeLabel: l10n.notificationsTimeLabel,
             ),
           ],
         ),
@@ -188,6 +190,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     required String timeText,
     required ValueChanged<bool> onToggle,
     required VoidCallback onTimeTap,
+    required String timeLabel,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -213,7 +216,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Saat',
+                      timeLabel,
                       style: AppTypography.labelMedium.copyWith(
                         color: theme.textSecondary,
                         letterSpacing: 0.2,

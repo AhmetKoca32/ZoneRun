@@ -37,19 +37,20 @@ class _HelpPageState extends State<HelpPage> {
     try {
       final subject = Uri.encodeComponent(_subjectController.text.trim());
       final body = Uri.encodeComponent(_messageController.text.trim());
-      final email = 'zoneruun@gmail.com';
-      
+      const email = 'zoneruun@gmail.com';
+
       final mailtoUri = Uri.parse('mailto:$email?subject=$subject&body=$body');
-      
-      if (await canLaunchUrl(mailtoUri)) {
-        await launchUrl(mailtoUri);
-        if (mounted) {
-          final theme = context.appTheme;
+
+      final launched = await launchUrl(mailtoUri);
+      if (mounted) {
+        final theme = context.appTheme;
+        final l10n = AppLocalizations.of(context)!;
+        if (launched) {
           Navigator.of(context).pop();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                AppLocalizations.of(context)!.helpMailOpened,
+                l10n.helpMailOpened,
                 style: AppTypography.bodyMedium.copyWith(
                   color: theme.textPrimary,
                 ),
@@ -57,14 +58,11 @@ class _HelpPageState extends State<HelpPage> {
               backgroundColor: theme.surface,
             ),
           );
-        }
-      } else {
-        if (mounted) {
-          final theme = context.appTheme;
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
-                'Mail gönderilemedi. Lütfen mail uygulamanızı kontrol edin.',
+                l10n.helpMailFailed,
                 style: AppTypography.bodyMedium.copyWith(
                   color: theme.textPrimary,
                 ),
@@ -74,13 +72,14 @@ class _HelpPageState extends State<HelpPage> {
           );
         }
       }
-    } catch (e) {
+    } catch (_) {
       if (mounted) {
         final theme = context.appTheme;
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                AppLocalizations.of(context)!.helpErrorOccurred(e.toString()),
+          SnackBar(
+            content: Text(
+              l10n.helpMailFailed,
               style: AppTypography.bodyMedium.copyWith(
                 color: theme.textPrimary,
               ),

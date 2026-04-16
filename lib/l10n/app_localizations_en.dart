@@ -198,6 +198,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'By continuing, you agree to the Terms of Use and Privacy Policy.';
 
   @override
+  String get authTermsPrefix => 'By continuing, you agree to the ';
+
+  @override
+  String get authTermsAnd => ' and ';
+
+  @override
+  String get authTermsSuffix => '.';
+
+  @override
   String get authForgotPasswordTitle => 'Forgot password';
 
   @override
@@ -221,6 +230,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Please enter a valid email address';
 
   @override
+  String get authForgotPasswordSend => 'Send';
+
+  @override
   String get authForgotPasswordSent =>
       'A password reset link has been sent to your email.';
 
@@ -232,6 +244,18 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get signUpNameMinLength => 'Name must be at least 2 characters';
+
+  @override
+  String get passwordStrengthWeak => 'Weak';
+
+  @override
+  String get passwordStrengthFair => 'Fair';
+
+  @override
+  String get passwordStrengthGood => 'Good';
+
+  @override
+  String get passwordStrengthStrong => 'Strong';
 
   @override
   String get signUpConfirmPasswordHint => 'Repeat password';
@@ -762,6 +786,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileEnterNameHint => 'Enter your name';
 
   @override
+  String get profileEmailNotVerified =>
+      'Your email is not verified. Please check your inbox.';
+
+  @override
+  String get profileEmailResend => 'Resend';
+
+  @override
+  String get profileEmailResendSuccess => 'Verification email has been resent.';
+
+  @override
+  String get profileEmailResendError =>
+      'Could not send email. Please try again later.';
+
+  @override
+  String get profileEmailVerified => 'Email verified!';
+
+  @override
   String get profileAccountDeleted => 'Your account has been deleted.';
 
   @override
@@ -1078,4 +1119,95 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get firebaseErrorAuthNotReady =>
       'Sign-in is not ready. App could not start.';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingGetStarted => 'Get Started';
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to ZoneRun';
+
+  @override
+  String get onboardingWelcomeDescription =>
+      'Explore zones, track your stats and earn rewards.';
+
+  @override
+  String get onboardingMapTitle => 'Draw Zones on the Map';
+
+  @override
+  String get onboardingMapDescription =>
+      'Track your walk with GPS and create your own zone on the map.';
+
+  @override
+  String get onboardingTasksTitle => 'Tasks and Rewards';
+
+  @override
+  String get onboardingTasksDescription =>
+      'Complete tasks, earn titles and banners.';
+
+  @override
+  String get onboardingStatsTitle => 'Track Your Stats';
+
+  @override
+  String get onboardingStatsDescription =>
+      'View distance, area and calorie statistics.';
+
+  @override
+  String get coachGotIt => 'Got it';
+
+  @override
+  String get coachNext => 'Next';
+
+  @override
+  String get coachProfileIcon => 'View your profile and settings here.';
+
+  @override
+  String get coachNotificationIcon => 'Check your notifications here.';
+
+  @override
+  String get coachConqueredArea => 'Your total conquered area is shown here.';
+
+  @override
+  String get coachTodayDistance => 'Today\'s distance is shown here.';
+
+  @override
+  String get coachTotalDistance => 'Your total distance is shown here.';
+
+  @override
+  String get coachStatistics => 'Tap here to see your detailed statistics.';
+
+  @override
+  String get coachStartButton => 'Tap here to start tracking a new zone.';
+
+  @override
+  String get coachMapStart => 'Press this button to start GPS tracking.';
+
+  @override
+  String get coachMapComplete => 'Use this button to save your zone.';
+
+  @override
+  String get coachMapCancel => 'Use this button to cancel tracking.';
+
+  @override
+  String get coachProfileBanner =>
+      'Tap your profile to edit your name, avatar and weight.';
+
+  @override
+  String get coachProfileShare => 'Share your profile on social media.';
+
+  @override
+  String get coachProfileQuickAccess =>
+      'Access help center, statistics or change your theme from here.';
+
+  @override
+  String get coachProfileTasks => 'Complete tasks to earn rewards!';
+
+  @override
+  String get coachProfileRewards =>
+      'Choose your unlocked avatars, banners and titles here.';
 }

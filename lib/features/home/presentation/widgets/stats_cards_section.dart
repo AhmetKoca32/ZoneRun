@@ -8,7 +8,9 @@ import '../../../../l10n/app_localizations.dart';
 import '../providers/home_provider.dart';
 
 class StatsCardsSection extends StatelessWidget {
-  const StatsCardsSection({super.key});
+  final GlobalKey? startButtonKey;
+
+  const StatsCardsSection({super.key, this.startButtonKey});
 
   @override
   Widget build(BuildContext context) {
@@ -19,6 +21,7 @@ class StatsCardsSection extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: ElevatedButton(
+            key: startButtonKey,
             onPressed: () {
               // Navigate to map page (index 1)
               final mainNav = MainNavigationInherited.of(context);

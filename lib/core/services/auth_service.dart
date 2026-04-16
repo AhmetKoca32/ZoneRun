@@ -65,6 +65,11 @@ class AuthService {
       // Update display name
       await userCredential.user?.updateDisplayName(userName);
 
+      // Email doğrulama maili gönder (başarısız olsa da kayıt tamamlanır)
+      try {
+        await userCredential.user?.sendEmailVerification();
+      } catch (_) {}
+
       // Firestore'da da kullanıcı dökümanı oluştur (profil senkronu için)
       try {
         await _firestoreUserService?.createUserProfile(userName: userName);
@@ -155,6 +160,26 @@ class AuthService {
     } catch (e) {
       throw AuthException('authErrorPasswordResetFailed');
     }
+  }
+
+  // ==================== Email Verification ====================
+
+  /// Doğrulama mailini tekrar gönder.
+  Future<void> resendEmailVerification() async {
+    final user = _auth?.currentUser;
+    if (user == null) throw AuthException('authErrorSignInRequired');
+    try {
+      await user.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      throw _handleAuthException(e);
+    } catch (_) {
+      throw AuthException('authErrorGeneric');
+    }
+  }
+
+  /// Kullanıcı verisini sunucudan yeniler (emailVerified güncellemesi için).
+  Future<void> reloadUser() async {
+    await _auth?.currentUser?.reload();
   }
 
   // ==================== Sign Out ====================

@@ -8,6 +8,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/constants/map_styles.dart';
 import '../../../../core/extensions/theme_extension_helper.dart';
 import '../../../../core/models/polygon_model.dart';
+import '../../../../core/utils/coach_mark_helper.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../../l10n/app_localizations_extra.dart';
 import '../../../history/presentation/providers/history_provider.dart';
@@ -35,6 +36,11 @@ class _MapPageState extends State<MapPage> {
   DateTime? _lastCameraUpdate;
   bool _isCameraAnimating = false;
   bool _hasFocusedOnPolygon = false;
+
+  // Coach mark keys
+  static const _coachPrefKey = 'map_coach_completed';
+  final _startButtonKey = GlobalKey();
+  bool _coachMarkShown = false;
 
   @override
   void dispose() {
@@ -888,6 +894,32 @@ class _MapPageState extends State<MapPage> {
     );
   }
 
+  Future<void> _showMapCoachMarks() async {
+    try {
+      if (!mounted) return;
+      final shouldShow = await CoachMarkHelper.shouldShow(_coachPrefKey);
+      if (!shouldShow || !mounted) return;
+
+      await Future.delayed(const Duration(milliseconds: 800));
+      if (!mounted) return;
+
+      final l10n = AppLocalizations.of(context)!;
+      await CoachMarkHelper.show(
+        context: context,
+        prefKey: _coachPrefKey,
+        targets: [
+          CoachMarkTarget(
+            key: _startButtonKey,
+            text: l10n.coachMapStart,
+            align: ContentAlign.top,
+          ),
+        ],
+      );
+    } catch (_) {
+      // Widget deactivated during coach mark flow; safe to ignore.
+    }
+  }
+
   bool _lastThemeWasDark = false;
   List<LatLng> _lastPoints = [];
   List<PolygonModel> _lastSavedPolygons = [];
@@ -972,6 +1004,11 @@ class _MapPageState extends State<MapPage> {
         } else if (provider.polygonToFocus == null) {
           // Reset flag when polygon is cleared
           _hasFocusedOnPolygon = false;
+        }
+
+        if (!_coachMarkShown) {
+          _coachMarkShown = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) => _showMapCoachMarks());
         }
 
         return Scaffold(
@@ -1127,6 +1164,7 @@ class _MapPageState extends State<MapPage> {
                         // START/STOP button
                         Expanded(
                           child: ElevatedButton(
+                            key: _startButtonKey,
                             onPressed: () async {
                               if (provider.isTracking) {
                                 provider.stopTracking();
