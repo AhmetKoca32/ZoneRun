@@ -1,358 +1,167 @@
-# ZoneRun 🗺️
+<div align="center">
 
-GPS tabanlı fitness oyunu. Kullanıcılar yürüyerek haritada poligonlar çizer ve alan fetheder.
+<img src="assets/icons/zonerun-high-resolution-logo-transparent.png" alt="ZoneRun logo" width="220" />
 
-## 📋 İçindekiler
+# ZoneRun
 
-- [Mimari Yapı](#mimari-yapı)
-- [Klasör Yapısı](#klasör-yapısı)
-- [Teknoloji Yığını](#teknoloji-yığını)
-- [Kurulum](#kurulum)
-- [Proje Yapısı Detayları](#proje-yapısı-detayları)
+**Turn outdoor movement into a location-based territory challenge.**
 
----
+Flutter · Dart · Google Maps · GPS · SQLite · Firebase · Provider
 
-## 🏗️ Mimari Yapı
+[Original technical architecture (Turkish)](docs/ORIGINAL_README_TR.md) · [Developer profile](https://github.com/AhmetKoca32)
 
-ZoneRun projesi **Feature-First (Özellik Tabanlı)** mimari kullanılarak geliştirilmiştir. Bu mimari, her özelliğin bağımsız ve modüler olmasını sağlar.
+</div>
 
-### Mimari Prensipler
+## Overview
 
-1. **Feature-First Yaklaşım**: Her özellik kendi klasöründe, bağımsız olarak geliştirilir
-2. **Separation of Concerns**: Her katman (presentation, service, model) ayrı tutulur
-3. **Dependency Injection**: Servisler singleton pattern ile yönetilir
-4. **Scalability**: Yeni özellikler kolayca eklenebilir
+**ZoneRun** is a Flutter mobile app exploring a location-based fitness game: a user walks a route, records GPS positions, closes the route into a polygon, and saves the resulting territory. The experience combines map interaction and geometric calculations with activity statistics, challenges, and customizable profiles.
 
----
+**Project scope:** A personal development project. This repository documents the implementation and does not claim a public app-store release or verified production deployment.
 
-## 📁 Klasör Yapısı
+## Main features
 
+- **GPS-based territory capture:** Collect location updates while moving and draw a route on Google Maps.
+- **Polygon area calculation:** Convert geographical positions to local metric coordinates and calculate approximate area using the **Shoelace formula**.
+- **Saved territories:** Store completed polygons in a local SQLite database, revisit previous routes, and delete saved records.
+- **Activity insights:** Display captured area, polygon counts, estimated distances, and statistics from recorded activity.
+- **Progression and customization:** Task progress, rewards, avatars, banners, titles, and accessories.
+- **User account flows:** Firebase Authentication, including email-based authentication and Google sign-in paths.
+- **Supporting experience:** Onboarding, localization, notifications, charts, and estimated activity calories.
+
+Some modules include prototype or development-specific logic. These features describe the codebase, not independently verified end-to-end production behavior.
+
+## Technology stack
+
+| Component | Technology |
+| --- | --- |
+| Mobile | Flutter, Dart |
+| State management | Provider / ChangeNotifier |
+| Maps and location | `google_maps_flutter`, `location` |
+| Local persistence | SQLite via `sqflite` |
+| Cloud services | Firebase Authentication, Firestore, Cloud Functions |
+| Backend functions | TypeScript, Firebase Functions (Node.js 24 in configuration) |
+| Data visualization | `fl_chart` |
+| Notifications | `flutter_local_notifications`, `timezone` |
+| Local preferences | `shared_preferences` |
+| UI assets | Custom avatars, banners, and light/dark themes |
+
+## How territory capture works
+
+1. The app requests the necessary location permission and subscribes to GPS position updates.
+2. `MapProvider` maintains the route as a list of coordinates and filters successive points.
+3. When the route is ready to close, `MapService` converts geographical coordinates to an approximate local metric plane.
+4. The **Shoelace formula** estimates the area of the closed polygon.
+5. The app saves the polygon and its calculated area in **SQLite**; history and statistics services read that data.
+
+For polygon vertices `(xᵢ, yᵢ)` expressed in a local metric plane, the calculation follows:
+
+```text
+Area = 1/2 × |Σ (xᵢ × yᵢ₊₁ − xᵢ₊₁ × yᵢ)|
 ```
+
+Area is an **estimate**, not cadastral/survey-grade measurement. Accuracy depends on GPS quality and coordinate conversion.
+
+## Architecture
+
+```mermaid
+flowchart LR
+    UI[Flutter screens] --> P[Provider state management]
+    P --> Map[Map and location services]
+    Map --> SQLite[(Local SQLite territories)]
+    P --> Stats[History and statistics services]
+    Stats --> SQLite
+    P --> Auth[Firebase Authentication]
+    P --> FS[Cloud Firestore]
+    P --> CF[Firebase Cloud Functions]
+```
+
+### Repository structure
+
+```text
 lib/
-├── core/                           # Tüm projede kullanılan ortak yapılar
-│   ├── constants/                 # Uygulama sabitleri
-│   │   └── app_constants.dart     # Veritabanı, harita, konum ayarları
-│   ├── models/                     # Ortak veri modelleri
-│   │   └── polygon_model.dart      # Poligon ve LatLng modelleri
-│   ├── services/                   # Ortak servisler
-│   │   ├── database_service.dart  # SQLite veritabanı işlemleri
-│   │   └── location_service.dart   # GPS konum servisi
-│   └── theme/                      # Tema ve stil tanımları
-│       └── app_theme.dart         # Ultra-minimalist dark tema
-│
-├── features/                       # Özellik bazlı klasörler
-│   ├── map/                        # Harita özelliği
-│   │   ├── presentation/          # UI katmanı
-│   │   │   ├── pages/             # Sayfa widget'ları
-│   │   │   │   └── map_page.dart
-│   │   │   ├── widgets/           # Feature'a özel widget'lar
-│   │   │   │   ├── map_controls_widget.dart
-│   │   │   │   ├── polygon_drawing_widget.dart
-│   │   │   │   └── location_marker_widget.dart
-│   │   │   └── providers/         # State management
-│   │   │       └── map_provider.dart
-│   │   └── services/              # Feature'a özel servisler
-│   │       └── map_service.dart   # Harita işlemleri, alan hesaplama
-│   │
-│   ├── history/                    # Geçmiş özelliği
-│   │   ├── presentation/
-│   │   │   ├── pages/
-│   │   │   │   └── history_page.dart
-│   │   │   ├── widgets/
-│   │   │   │   ├── polygon_card_widget.dart
-│   │   │   │   ├── history_list_widget.dart
-│   │   │   │   └── area_stats_widget.dart
-│   │   │   └── providers/
-│   │   │       └── history_provider.dart
-│   │   └── services/
-│   │       └── history_service.dart
-│   │
-│   └── profile/                    # Profil özelliği
-│       ├── presentation/
-│       │   ├── pages/
-│       │   │   └── profile_page.dart
-│       │   ├── widgets/
-│       │   │   ├── stat_card_widget.dart
-│       │   │   └── profile_header_widget.dart
-│       │   └── providers/
-│       │       └── profile_provider.dart
-│       └── services/
-│           └── profile_service.dart
-│
-└── main.dart                       # Uygulama giriş noktası
+  core/
+    constants/      App configuration and game settings
+    models/         Polygon and coordinate models
+    services/       SQLite, GPS, Firebase and notifications
+    utils/          Geometry and calorie estimation helpers
+    theme/          Light/dark theme and design tokens
+  features/
+    auth/           Authentication screens and providers
+    home/           Dashboard and motivation
+    map/            Map view, location tracking and territories
+    history/        Completed polygons and activity metrics
+    profile/        Account, stats, tasks and rewards
+  l10n/             Localization resources
+
+functions-backend/
+  src/              Firebase callable function handlers
+
+assets/
+  icons/            App identity
+  avatars/          Profile avatar assets
+  banners/          Reward and profile banners
+
+docs/
+  ORIGINAL_README_TR.md
 ```
 
----
+## Getting started
 
-## 🛠️ Teknoloji Yığını
+### Requirements
 
-### State Management
-- **Provider** (`^6.1.5+1`) - State yönetimi için
+- Flutter SDK with a compatible Dart release (`pubspec.yaml` declares **Dart SDK `^3.10.1`**)
+- Android Studio / Xcode and a configured emulator or physical device
+- A **Google Maps API key** configured for the target platform
+- Your **own Firebase project** with the necessary enabled services and platform configuration
+- Location services and permissions on the test device
 
-### Harita & Konum
-- **google_maps_flutter** (`^2.14.0`) - Google Maps entegrasyonu
-- **location** (`^8.0.1`) - GPS konum servisi
+### Mobile app
 
-### Veritabanı
-- **sqflite** (`^2.4.2`) - SQLite veritabanı
-- **path** (`^1.9.1`) - Dosya yolu işlemleri
-
----
-
-## 🚀 Kurulum
-
-### Gereksinimler
-- Flutter SDK 3.10.1 veya üzeri
-- Dart SDK 3.10.1 veya üzeri
-
-### Adımlar
-
-1. **Bağımlılıkları yükleyin:**
-   ```bash
-   flutter pub get
-   ```
-
-2. **Google Maps API Key ekleyin:**
-   - `android/app/src/main/AndroidManifest.xml` dosyasına API key ekleyin
-   - `ios/Runner/AppDelegate.swift` dosyasına API key ekleyin
-
-3. **Uygulamayı çalıştırın:**
-   ```bash
-   flutter run
-   ```
-
----
-
-## 📚 Proje Yapısı Detayları
-
-### 🎯 Core Klasörü
-
-Tüm projede kullanılan ortak yapıları içerir.
-
-#### `core/constants/`
-- **app_constants.dart**: Uygulama genelinde kullanılan sabitler
-  - Veritabanı adı ve versiyonu
-  - Harita zoom seviyeleri
-  - Konum güncelleme aralıkları
-  - Poligon çizim ayarları
-
-#### `core/models/`
-- **polygon_model.dart**: Poligon veri modeli
-  - `PolygonModel`: Poligon bilgileri (id, name, points, area, dates)
-  - `LatLng`: Enlem-boylam koordinat modeli
-
-#### `core/services/`
-- **database_service.dart**: SQLite veritabanı işlemleri
-  - Singleton pattern ile yönetilir
-  - CRUD işlemleri (Create, Read, Update, Delete)
-  - Poligon filtreleme (tamamlanmış/aktif)
-  
-- **location_service.dart**: GPS konum servisi
-  - Konum izni kontrolü ve isteme
-  - Anlık konum alma
-  - Konum stream'i (sürekli takip)
-
-#### `core/theme/`
-- **app_theme.dart**: Ultra-minimalist dark tema
-  - Zemin: Siyah (#000000)
-  - Yazılar: Beyaz
-  - Nike Run Club benzeri premium tasarım
-
----
-
-### 🗺️ Features Klasörü
-
-Her özellik kendi klasöründe, bağımsız olarak geliştirilir.
-
-#### Feature Yapısı
-
-Her feature şu yapıyı takip eder:
-
-```
-feature_name/
-├── presentation/          # UI Katmanı
-│   ├── pages/            # Ana sayfa widget'ları
-│   ├── widgets/          # Feature'a özel widget'lar
-│   └── providers/        # State management (Provider)
-└── services/             # Business Logic Katmanı
-    └── feature_service.dart
+```bash
+git clone https://github.com/AhmetKoca32/ZoneRun.git
+cd ZoneRun
+flutter pub get
+flutter run
 ```
 
-#### Map Feature (`features/map/`)
+**Environment note:** `pubspec.yaml` references an `.env` asset. Create a local environment file with only the values needed by your setup; never commit real keys. Because Firebase and Google Maps configuration is environment-specific, `flutter pub get` alone does not make the application runnable.
 
-**Amaç**: Kullanıcıların haritada poligon çizmesi ve alan fethetmesi
+In debug mode, `lib/main.dart` configures Firebase Functions to use a local emulator. Run/configure the matching emulator or adjust your private development environment as appropriate.
 
-**Servisler**:
-- `map_service.dart`:
-  - Konum takibi başlatma/durdurma
-  - Poligon alan hesaplama (Shoelace formülü)
-  - Poligon kaydetme ve tamamlama
-  - Konum izni kontrolü
+### Backend functions
 
-**Presentation**:
-- `pages/map_page.dart`: Ana harita sayfası
-- `widgets/`: Harita kontrolleri, poligon çizimi widget'ları
-- `providers/map_provider.dart`: Harita state yönetimi
+The repository also contains TypeScript-based Firebase functions:
 
-#### History Feature (`features/history/`)
-
-**Amaç**: Tamamlanmış poligonların geçmişini görüntüleme
-
-**Servisler**:
-- `history_service.dart`:
-  - Geçmiş poligonları listeleme
-  - Toplam fethedilen alan hesaplama
-  - Poligon silme
-  - İstatistik hesaplama
-
-**Presentation**:
-- `pages/history_page.dart`: Geçmiş listesi sayfası
-- `widgets/`: Poligon kartları, istatistik widget'ları
-- `providers/history_provider.dart`: Geçmiş state yönetimi
-
-#### Profile Feature (`features/profile/`)
-
-**Amaç**: Kullanıcı istatistikleri ve profil bilgileri
-
-**Servisler**:
-- `profile_service.dart`:
-  - Kullanıcı istatistikleri toplama
-  - Alan formatlama (m², km²)
-  - Genel performans metrikleri
-
-**Presentation**:
-- `pages/profile_page.dart`: Profil sayfası
-- `widgets/`: İstatistik kartları, profil header
-- `providers/profile_provider.dart`: Profil state yönetimi
-
----
-
-## 🔄 Veri Akışı
-
-```
-UI (Presentation)
-    ↓
-Provider (State Management)
-    ↓
-Service (Business Logic)
-    ↓
-Core Service (Database, Location)
-    ↓
-Model (Data)
+```bash
+cd functions-backend
+npm install
+npm run build
 ```
 
-### Örnek: Poligon Çizme Akışı
+This only builds the functions; it does not deploy them. Review the Firebase configuration before connecting them to any real cloud project.
 
-1. **UI**: Kullanıcı haritada yürür, `MapProvider` konumları toplar
-2. **Provider**: `MapProvider` state'i günceller
-3. **Service**: `MapService` alan hesaplar
-4. **Core Service**: `DatabaseService` poligonu kaydeder
-5. **Model**: `PolygonModel` veriyi temsil eder
+### Local checks
 
----
-
-## 📝 Kodlama Standartları
-
-### Dosya İsimlendirme
-- **snake_case**: `map_service.dart`, `polygon_model.dart`
-- **PascalCase**: Sınıf isimleri için
-
-### Klasör İsimlendirme
-- **lowercase**: `features/`, `core/`, `presentation/`
-
-### Import Sıralaması
-1. Dart core imports
-2. Flutter imports
-3. Package imports
-4. Relative imports
-
-### Servis Pattern
-- Tüm servisler singleton pattern kullanır
-- Factory constructor ile instance oluşturulur
-
----
-
-## 🎨 Tasarım Dili
-
-### Renkler
-- **Zemin**: Siyah (#000000)
-- **Yazılar**: Beyaz (#FFFFFF)
-- **Vurgular**: Beyaz (neon renkler yok)
-
-### Tipografi
-- Minimalist, sade fontlar
-- Negatif letter-spacing (-0.5, -0.3)
-- Font weight: 400-700 arası
-
-### UI Prensipleri
-- Ultra-minimalist yaklaşım
-- Nike Run Club benzeri ciddi ve premium hava
-- Gereksiz dekorasyon yok
-
----
-
-## 🧪 Test Yapısı (Gelecek)
-
-```
-test/
-├── unit/                    # Unit testler
-│   ├── core/
-│   └── features/
-├── widget/                  # Widget testleri
-│   └── features/
-└── integration/             # Integration testleri
+```bash
+flutter analyze
+flutter test
 ```
 
----
+These commands are offered for local verification. No passing build, automated test result, or CI status is claimed in this document.
 
-## 📦 Yeni Feature Ekleme
+## Development notes
 
-Yeni bir feature eklemek için:
+- **Persistence:** Territory history is stored locally with SQLite, while Firebase handles separate account/cloud functionality.
+- **Activity estimates:** Distances derive from route geometry, and calories are estimated using a MET-based calculation rather than a medical measurement.
+- **Platform permissions:** Continuous location use and notifications require device-specific permissions.
+- **Development stage:** Some flows, especially cloud-related and purchase-validation functions, require additional setup and should not be interpreted as verified live payment features.
 
-1. `lib/features/` altında yeni klasör oluştur
-2. `presentation/` ve `services/` klasörlerini ekle
-3. Gerekli dosyaları oluştur (page, service, provider)
-4. `main.dart`'a gerekirse route ekle
+## Original documentation
 
-**Örnek**: `features/settings/` feature'ı eklemek
-```
-features/
-└── settings/
-    ├── presentation/
-    │   ├── pages/
-    │   │   └── settings_page.dart
-    │   └── providers/
-    │       └── settings_provider.dart
-    └── services/
-        └── settings_service.dart
-```
+The original detailed Turkish README remains available **unchanged** in [docs/ORIGINAL_README_TR.md](docs/ORIGINAL_README_TR.md). It includes the original folder-by-folder architecture explanation, coding conventions, design guidelines, and feature development notes.
 
----
+## Developer
 
-## 🤝 Katkıda Bulunma
+Developed by [**Ahmet Koca**](https://github.com/AhmetKoca32), a computer engineering graduate working across backend, mobile, and full-stack applications.
 
-1. Feature-First mimarisine uygun kod yazın
-2. Her feature'ı bağımsız tutun
-3. Core klasörüne sadece ortak yapılar ekleyin
-4. Servislerde singleton pattern kullanın
-5. Minimalist tasarım diline uyun
-
----
-
-## 📄 Lisans
-
-Bu proje özel bir projedir.
-
----
-
-## 👨‍💻 Geliştirici Notları
-
-- **Mimari**: Feature-First Architecture
-- **State Management**: Provider
-- **Veritabanı**: SQLite (sqflite)
-- **Harita**: Google Maps Flutter
-- **Tasarım**: Ultra-Minimalist Dark Mode
-
----
-
-**ZoneRun** - Yürü, Çiz, Fethet! 🏃‍♂️🗺️
+[LinkedIn](https://www.linkedin.com/in/ahmetkocaa/) · [GitHub](https://github.com/AhmetKoca32)
